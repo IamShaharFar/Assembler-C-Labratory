@@ -2,7 +2,7 @@ mcro aaa
     inc r4
     mov B,r3
 mcroend
-
+;
 aaa
 
 mcro bbb
@@ -10,3 +10,9 @@ mcro bbb
 mcroend
 
 bbb
+hello
+
+
+;ndasjbhndj
+dont do it
+hoooooo

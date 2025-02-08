@@ -21,10 +21,7 @@ typedef struct {
     int count;
 } McroTable;
 
-void process_as_file(FILE* fp);
-void init_mcro_table(McroTable* table);
-ErrorCode add_mcro(McroTable* table, const char* name);
-void print_mcro_table(const McroTable* table);
-ErrorCode add_line_to_mcro(McroTable* table, const char* line);
+void print_mcro_if_called(FILE *fp);
+void process_as_file(FILE *fp, const char *file_path);
 
 #endif

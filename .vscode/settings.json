@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "file_processor.h": "c"
+        "file_processor.h": "c",
+        "type_traits": "c"
     }
 }

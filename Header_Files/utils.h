@@ -19,4 +19,6 @@ int detect_consecutive_commas(const char* str);
 /* Ensures no extra tokens after command */
 int verify_command_end(const char* str);
 
+void trim_newline(char *str);
+
 #endif /* UTILS_H */

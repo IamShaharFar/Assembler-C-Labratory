@@ -8,7 +8,8 @@ SOURCES = $(SRCDIR)/assembler.c \
           $(SRCDIR)/errors.c \
           $(SRCDIR)/file_processor.c \
           $(SRCDIR)/preprocessor.c \
-          $(SRCDIR)/utils.c
+          $(SRCDIR)/utils.c \
+          $(SRCDIR)/preprocessor_utils.c
 
 OBJECTS = $(SOURCES:.c=.o)
 
@@ -17,7 +18,8 @@ HEADERS = $(INCDIR)/errors.h \
           $(INCDIR)/utils.h \
           $(INCDIR)/file_processor.h \
           $(INCDIR)/globals.h \
-          $(INCDIR)/preprocessor.h
+          $(INCDIR)/preprocessor.h \
+          $(INCDIR)/preprocessor_utils.h
 
 # Executable name
 EXEC = assembler

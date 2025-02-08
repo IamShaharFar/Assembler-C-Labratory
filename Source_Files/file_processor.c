@@ -16,6 +16,7 @@ static int file_exists(const char* filename) {
 }
 
 static int count_files_with_basename(const char* filepath) {
+    printf("filepath: %s\n", filepath);
     char test_filename[MAX_FILENAME_LENGTH];
     const char* extensions[] = {".as", ".am", ".ob"};
     int count = 0;
@@ -129,7 +130,7 @@ int process_file(const char* filepath) {
     }
 
     /* Process macros */
-    process_as_file(fp);
+    process_as_file(fp, full_source_path);
     
     /* Cleanup */
     fclose(fp);

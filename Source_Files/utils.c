@@ -1,6 +1,7 @@
 /* Source_Files/utils.c */
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 #include "../Header_Files/utils.h"
 #include "../Header_Files/globals.h"
 
@@ -53,4 +54,16 @@ int detect_consecutive_commas(const char* str) {
 int verify_command_end(const char* str) {
     str = advance_to_next_token((char*)str);
     return !str || !*str;
+}
+
+void trim_newline(char *str) {
+    char *end;
+
+    if (str == NULL || *str == '\0') return;
+
+    end = str + strlen(str) - 1;
+    while (end > str && (*end == '\n' || *end == '\r' || *end == ' ' || *end == '\t')) {
+        *end = '\0';
+        end--;
+    }
 }
