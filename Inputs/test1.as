@@ -10,8 +10,8 @@ mcro bbb
 mcroend
 
 bbb
-hello
-
+hello: abcdefg
+gut: boo
 
 ;ndasjbhndj
 dont do it

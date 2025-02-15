@@ -4,29 +4,69 @@
 #include <stdio.h>
 #include "../Header_Files/utils.h"
 #include "../Header_Files/globals.h"
+#include "../Header_Files/structs.h"
 
+/**
+ * @brief Advances the pointer to the next non-whitespace character.
+ *
+ * This function moves the pointer forward, skipping over any leading 
+ * whitespace characters (spaces, tabs, etc.) until it points to the 
+ * first non-whitespace character. It does not modify the input string 
+ * and is useful for locating the start of the next token in a line.
+ *
+ * Example:
+ * Input: "   mov r1, r2"
+ * Output: Pointer to 'm'
+ *
+ * @param str The input string to process.
+ * @return Pointer to the first non-whitespace character in the string.
+ */
 char* advance_to_next_token(char* str) {
-    while (str && *str && isspace(*str)) {
+    while (str && *str && isspace((unsigned char)*str)) {
         str++;
     }
     return str;
 }
 
-int validate_register_operand(const char* str) {
-    /* Skip operation name and spaces */
-    str = advance_to_next_token((char*)str);
-    if (!str || !*str) return FALSE;
+/**
+ * @brief Advances the pointer past the current token (non-space sequence).
+ *
+ * This function skips over the current token (a sequence of non-space characters)
+ * and returns a pointer to the next whitespace or the end of the string.
+ *
+ * @param str The string pointer positioned at the start of the token.
+ * @return Pointer to the character after the current token.
+ */
+char* advance_past_token(char* str) {
+    while (str && *str && !isspace((unsigned char)*str)) {
+        str++;
+    }
+    return str;
+}
+
+/**
+ * @brief Advances the pointer past the current token until it hits a space, tab, or comma.
+ *
+ * @param str The input string starting from the current token.
+ * @return Pointer to the first space, tab, or comma after the token.
+ */
+char* advance_past_token_or_comma(char* str) {
+    while (*str && !isspace((unsigned char)*str) && *str != ',') {
+        str++;
+    }
+    return str;
+}
+
+
+int validate_register_operand(const char* str)
+{
+    if (!str || strlen(str) != 2) 
+    {
+        return FALSE; /* Invalid length */
+    }
     
-    /* Skip to register operand */
-    while (*str && !isspace(*str)) str++;
-    str = advance_to_next_token((char*)str);
-    
-    /* Validate register format r[0-7] */
-    if (str && 
-        strncmp(str, REGISTER_PREFIX, strlen(REGISTER_PREFIX)) == 0 && 
-        isdigit(*(str + 1)) && 
-        (*(str + 1) >= '0' && *(str + 1) <= '7') &&
-        !isalnum(*(str + 2))) {
+    if (str[0] == 'r' && isdigit(str[1]) && str[1] >= '0' && str[1] <= '7')
+    {
         return TRUE;
     }
     return FALSE;
@@ -67,3 +107,10 @@ void trim_newline(char *str) {
         end--;
     }
 }
+
+void init_virtual_pc(VirtualPC *vpc) {
+    memset(vpc->storage, 0, sizeof(vpc->storage));  /* Initialize all storage to 0 */
+    vpc->IC = 0;  /* Initialize IC to 0 */
+    vpc->DC = 0;  /* Initialize DC to 0 */
+}
+

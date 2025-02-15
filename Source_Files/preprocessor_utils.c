@@ -8,14 +8,6 @@
 #include "../Header_Files/preprocessor_utils.h"
 #include "../Header_Files/utils.h"
 
-/* Reserved words in assembly language */
-const char *reserved_words[] = {
-    "mov", "cmp", "add", "sub", "lea", "clr", "not", "inc", "dec",
-    "jmp", "bne", "jsr", "red", "prn", "rts", "stop",
-    ".data", ".string", ".entry", ".extern"};
-
-#define RESERVED_WORDS_COUNT (sizeof(reserved_words) / sizeof(reserved_words[0]))
-
 /**
  * @brief Initializes the macro table to an empty state.
  *
@@ -27,7 +19,7 @@ void init_mcro_table(McroTable *table)
 {
     int i;
     table->count = 0;
-    for (i = 0; i < MAX_MACRO_COUNT; i++)
+    for (i = 0; i < MAX_MCROS; i++)
     {
         table->mcros[i].line_count = 0;
     }
@@ -44,10 +36,10 @@ void init_mcro_table(McroTable *table)
 int is_valid_mcro_name(const char *name)
 {
     size_t i;
-    char clean_name[MAX_MACRO_NAME];
+    char clean_name[MAX_MCRO_NAME];
 
-    strncpy(clean_name, name, MAX_MACRO_NAME - 1);
-    clean_name[MAX_MACRO_NAME - 1] = '\0';
+    strncpy(clean_name, name, MAX_MCRO_NAME - 1);
+    clean_name[MAX_MCRO_NAME - 1] = '\0';
     trim_newline(clean_name);
 
     for (i = 0; i < RESERVED_WORDS_COUNT; i++)
@@ -86,13 +78,13 @@ ErrorCode add_mcro(McroTable *table, const char *name)
         }
     }
 
-    if (table->count >= MAX_MACRO_COUNT)
+    if (table->count >= MAX_MCROS)
     {
         return ERROR_MEMORY_ALLOCATION;
     }
 
-    strncpy(table->mcros[table->count].name, name, MAX_MACRO_NAME - 1);
-    table->mcros[table->count].name[MAX_MACRO_NAME - 1] = '\0';
+    strncpy(table->mcros[table->count].name, name, MAX_MCRO_NAME  - 1);
+    table->mcros[table->count].name[MAX_MCRO_NAME  - 1] = '\0';
     table->mcros[table->count].line_count = 0;
     table->count++;
     return ERROR_SUCCESS;
@@ -115,7 +107,7 @@ ErrorCode add_line_to_mcro(McroTable *table, const char *line)
         return ERROR_MCRO_BEFORE_DEF;
 
     current_mcro = &table->mcros[table->count - 1];
-    if (current_mcro->line_count >= MAX_MACRO_LINES)
+    if (current_mcro->line_count >= MAX_MCRO_LINES)
     {
         return ERROR_MEMORY_ALLOCATION;
     }

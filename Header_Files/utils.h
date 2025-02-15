@@ -4,8 +4,20 @@
 
 #define REGISTER_PREFIX "r"
 
+#include "../Header_Files/structs.h"
+
 /* Advances pointer past whitespace characters */
 char* advance_to_next_token(char* str);
+
+char* advance_past_token(char* str);
+
+/**
+ * @brief Advances the pointer past the current token until it hits a space, tab, or comma.
+ *
+ * @param str The input string starting from the current token.
+ * @return Pointer to the first space, tab, or comma after the token.
+ */
+char* advance_past_token_or_comma(char* str);
 
 /* Validates register operand format (r0-r7) */
 int validate_register_operand(const char* str);
@@ -20,5 +32,7 @@ int detect_consecutive_commas(const char* str);
 int verify_command_end(const char* str);
 
 void trim_newline(char *str);
+
+void init_virtual_pc(VirtualPC *vpc);
 
 #endif /* UTILS_H */

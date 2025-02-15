@@ -7,10 +7,6 @@
 #include "errors.h"
 #include "preprocessor.h"
 
-/* Reserved words used in assembly language */
-extern const char *reserved_words[];
-#define RESERVED_WORDS_COUNT (sizeof(reserved_words) / sizeof(reserved_words[0]))
-
 /**
  * @brief Initializes the macro table to an empty state.
  * @param table Pointer to the macro table to initialize.

@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "file_processor.h": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "utils.h": "c",
+        "globals.h": "c"
     }
 }

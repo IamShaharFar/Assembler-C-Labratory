@@ -6,20 +6,26 @@ INCDIR = Header_Files
 # Source and object files
 SOURCES = $(SRCDIR)/assembler.c \
           $(SRCDIR)/errors.c \
-          $(SRCDIR)/file_processor.c \
           $(SRCDIR)/preprocessor.c \
+          $(SRCDIR)/preprocessor_utils.c\
+          $(SRCDIR)/first_pass.c\
+          $(SRCDIR)/first_pass_utils.c\
           $(SRCDIR)/utils.c \
-          $(SRCDIR)/preprocessor_utils.c
+          $(SRCDIR)/vpc_utils.c \
+          $(SRCDIR)/globals.c
 
 OBJECTS = $(SOURCES:.c=.o)
 
 # Header dependencies
 HEADERS = $(INCDIR)/errors.h \
-          $(INCDIR)/utils.h \
-          $(INCDIR)/file_processor.h \
-          $(INCDIR)/globals.h \
+          $(INCDIR)/first_pass.h \
+          $(INCDOIR)/first_pass_utils.h \
           $(INCDIR)/preprocessor.h \
-          $(INCDIR)/preprocessor_utils.h
+          $(INCDIR)/preprocessor_utils.h \
+          $(INCDIR)/utils.h \
+          $(INCDIR)/structs.h \
+          $(INCDIR)/globals.h \
+          $(INCDIR)/vpc_utils.h 
 
 # Executable name
 EXEC = assembler

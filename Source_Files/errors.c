@@ -4,61 +4,55 @@
 
 const Error errors[] = {
     /* General errors */
-    {ERROR_SUCCESS, "Operation completed successfully"},
-    {ERROR_MEMORY_ALLOCATION, "Not enough memory available to complete operation"},
+    {ERROR_SUCCESS, "ERROR_SUCCESS", "Operation completed successfully"},
+    {ERROR_MEMORY_ALLOCATION, "ERROR_MEMORY_ALLOCATION", "Not enough memory available to complete operation"},
 
     /* File errors */
-    {ERROR_MISSING_AS_FILE, "Missing source file - please provide a .as file"},
-    {ERROR_FILENAME_TOO_LONG, "File name is too long - please use a shorter name"},
-    {ERROR_FILE_NOT_EXIST, "Could not find the specified file"},
-    {ERROR_MISSING_AM_FILE, "Could not find the .am file - run preprocessor first"},
-    {ERROR_LINE_TOO_LONG, "Line is too long - maximum length is 80 characters"},
-    {ERROR_FILE_WRITE, "Could not write to output file - check permissions"},
-    {ERROR_FILE_READ, "Could not read from file - check if file exists and permissions"},
+    {ERROR_MISSING_AS_FILE, "ERROR_MISSING_AS_FILE", "Missing source file - please provide a .as file"},
+    {ERROR_FILENAME_TOO_LONG, "ERROR_FILENAME_TOO_LONG", "File name is too long - please use a shorter name"},
+    {ERROR_FILE_NOT_EXIST, "ERROR_FILE_NOT_EXIST", "Could not find the specified file"},
+    {ERROR_LINE_TOO_LONG, "ERROR_LINE_TOO_LONG", "Line is too long - maximum length is 80 characters"},
+    {ERROR_FILE_WRITE, "ERROR_FILE_WRITE", "Could not write to output file - check permissions"},
+    {ERROR_FILE_READ, "ERROR_FILE_READ", "Could not read from file - check if file exists and permissions"},
 
-    /* Mcro errors */
-    {ERROR_MCRO_NO_NAME, "Macro is missing a name"},
-    {ERROR_MCRO_EXTRA_TEXT, "Extra text found after macro name - remove extra content"},
-    {ERROR_FILE_POSITION, "Could not position file pointer correctly"},
-    {ERROR_ENDMACRO_EXTRA_TEXT, "Extra text found after endmcro - remove extra content"},
-    {ERROR_MCRO_DUPLICATE, "Macro name already exists - use a different name"},
-    {ERROR_MCRO_COPY_FAILED, "Failed to copy macro content"},
-    {ERROR_MCRO_EXPANSION, "Failed to expand macro"},
-    {ERROR_MCRO_BEFORE_DEF, "Trying to use macro before defining it"},
-    {ERROR_MCRO_ILLEGAL_NAME, "Invalid macro name - use only letters and numbers"},
-
-    /* Syntax errors */
-    {ERROR_ILLEGAL_OPCODE, "Invalid operation code - check spelling"},
-    {ERROR_EXTRA_TEXT, "Extra text found after instruction - remove extra content"},
-    {ERROR_ILLEGAL_ARGUMENT, "Invalid argument type or format"},
-    {ERROR_MISSING_ARGUMENT, "Missing required argument"},
-    {ERROR_MISSING_COMMA, "Missing comma between operands"},
-    {ERROR_UNDEFINED_LABEL, "Label not found - check if it's defined"},
-    {ERROR_ILLEGAL_ENTRY_LABEL, "Invalid entry label name"},
-    {ERROR_ILLEGAL_OPCODE_COMMA, "Incorrect comma placement near operation code"},
-    {ERROR_EXCESS_COMMAS, "Too many commas found"},
-    {ERROR_MISPLACED_COMMA, "Comma in wrong position"},
+    /* Macro errors */
+    {ERROR_MCRO_NO_NAME, "ERROR_MCRO_NO_NAME", "Macro is missing a name"},
+    {ERROR_MCRO_DUPLICATE, "ERROR_MCRO_DUPLICATE", "Macro name already exists - use a different name"},
+    {ERROR_MCRO_BEFORE_DEF, "ERROR_MCRO_BEFORE_DEF", "Trying to use macro before defining it"},
+    {ERROR_MCRO_ILLEGAL_NAME, "ERROR_MCRO_ILLEGAL_NAME", "Invalid macro name - use only letters and numbers"},
 
     /* Label and register errors */
-    {ERROR_ILLEGAL_CHAR_OPCODE, "Invalid character in operation code or label"},
-    {ERROR_ILLEGAL_CHAR, "Invalid character found in code"},
-    {ERROR_MISSING_NUMBER_COMMA, "Missing comma between numbers"},
-    {ERROR_ILLEGAL_LABEL, "Invalid label name - start with letter, use only letters and numbers"},
-    {ERROR_MISSING_LABEL_COLON, "Missing colon (:) after label name"},
-    {ERROR_ILLEGAL_REGISTER, "Invalid register number - use r0 through r7"},
-    {ERROR_COMMA_BEFORE_OPCODE, "Remove comma before operation code"},
+    {ERROR_ILLEGAL_LABEL, "ERROR_ILLEGAL_LABEL", "Invalid label name - start with letter, use only letters and numbers"},
+    {ERROR_LABEL_DUPLICATE, "ERROR_LABEL_DUPLICATE", "Duplicate label found - use a different name"},
 
-    /* Directive errors */
-    {ERROR_MISSING_DIRECTIVE_DOT, "Missing dot (.) before directive"},
-    {ERROR_DATA_NON_NUMERIC, "Data directive requires numbers only"},
-    {ERROR_DATA_TRAILING_COMMA, "Remove extra comma after last number"},
-    {ERROR_STRING_MISSING_QUOTE, "String is missing closing quote"},
-    {ERROR_STRING_EXTRA_TEXT, "Remove extra text after string"},
-    {ERROR_IC_OVERFLOW, "Too many instructions - maximum program size exceeded"},
-    {ERROR_LABEL_DUPLICATE, "Label name already used - choose a different name"},
-    {ERROR_EXTERN_CONFLICT, "Label cannot be both external and local"},
-    {ERROR_DATA_OUT_OF_RANGE, "Number is too big - use smaller value"},
-    {ERROR_ILLEGAL_DIRECTIVE, "Invalid directive name"}
+    /* Command errors */
+    {ERROR_UNKNOWN_COMMAND, "ERROR_UNKNOWN_COMMAND", "Unknown command - not recognized by the assembler"},
+    {ERROR_INVALID_PARAM_COUNT, "ERROR_INVALID_PARAM_COUNT", "Invalid number of parameters - check the expected parameter count"},
+    {ERROR_MISSING_COMMA, "ERROR_MISSING_COMMA","Missing comma between parameters - add a comma"},
+    {ERROR_CONSECUTIVE_COMMAS, "ERROR_CONSECUTIVE_COMMAS","Consecutive commas detected - remove extra commas"},
+    {ERROR_EXTRA_TEXT_AFTER_COMMAND, "ERROR_EXTRA_TEXT_AFTER_COMMAND","Extra text after command - remove unnecessary text"},
+
+    {ERROR_INVALID_DIRECT_OR_REGISTER_OPERAND, "ERROR_INVALID_DIRECT_OR_REGISTER_OPERAND", "Invalid operand. Expected Direct Addressing or Register Address Direct."},
+    {ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_FIRST_OPERAND, "ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_FIRST_OPERAND", "Invalid first operand. Must be Immediate Address, Direct Addressing, or Register Address Direct."},
+    {ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_SECOND_OPERAND, "ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_SECOND_OPERAND", "Invalid second operand. Must be Immediate Address, Direct Addressing, or Register Address Direct."},
+    {ERROR_INVALID_DIRECT_OR_REGISTER_SECOND_OPERAND, "ERROR_INVALID_DIRECT_OR_REGISTER_SECOND_OPERAND", "Invalid second operand. Must be Direct Addressing or Register Address Direct."},
+    {ERROR_INVALID_DIRECT_FIRST_OPERAND, "ERROR_INVALID_DIRECT_FIRST_OPERAND", "Invalid first operand. Must be Direct Addressing."},
+    {ERROR_INVALID_DIRECT_OR_REGISTER_SECOND_OPERAND, "ERROR_INVALID_DIRECT_OR_REGISTER_SECOND_OPERAND", "Invalid second operand. Must be Direct Addressing or Register Address Direct."},
+    {ERROR_INVALID_RELATIVE_OR_DIRECT_OPERAND, "ERROR_INVALID_RELATIVE_OR_DIRECT_OPERAND", "Invalid operand. Expected Relative Addressing or Direct Addressing."},
+    {ERROR_INVALID_IMMEDIATE_OPERAND, "ERROR_INVALID_IMMEDIATE_OPERAND", "Invalid numeric value. Expected Immediate Address."},
+    {ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_OPERAND, "ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_OPERAND", "Invalid operand. Expected Immediate Address, Direct Addressing, or Register Address Direct."},
+
+    /* Data storage errors */
+    {ERROR_INVALID_DATA_NO_NUMBER, "ERROR_INVALID_DATA_NO_NUMBER", "Invalid .data directive: Must be followed by at least one number."},
+    {ERROR_INVALID_DATA_NON_NUMERIC, "ERROR_INVALID_DATA_NON_NUMERIC", "Invalid .data directive: Contains a non-numeric value."},
+    {ERROR_INVALID_DATA_TRAILING_COMMA, "ERROR_INVALID_DATA_TRAILING_COMMA", "Invalid .data directive: Trailing comma detected."},
+    {ERROR_INVALID_DATA_UNEXPECTED_CHAR, "ERROR_INVALID_DATA_UNEXPECTED_CHAR", "Invalid .data directive: Unexpected character found."},
+    {ERROR_INVALID_STRING_NO_QUOTE, "ERROR_INVALID_STRING_NO_QUOTE", "Invalid .string directive: Must start with a double quote."},
+    {ERROR_INVALID_STRING_MISSING_END_QUOTE, "ERROR_INVALID_STRING_MISSING_END_QUOTE", "Invalid .string directive: Missing closing double quote."},
+    {ERROR_INVALID_STRING_EXTRA_CHARS, "ERROR_INVALID_STRING_EXTRA_CHARS", "Invalid .string directive: Unexpected characters after closing quote."},
+    {ERROR_INVALID_STORAGE_DIRECTIVE, "ERROR_INVALID_STORAGE_DIRECTIVE", "Invalid storage instruction. Expected .data or .string directive."},
+    {ERROR_INVALID_LABEL_CONTENT, "ERROR_INVALID_LABEL_CONTENT", "Label content must be a valid .data/.string directive or a valid command."},
+
 };
 
 void print_error(ErrorCode code, int line_number) {
@@ -71,61 +65,22 @@ void print_error_no_line(ErrorCode code) {
 
 const char* get_error_message(ErrorCode code) {
     int i;
-    for (i = 0; errors[i].code != ERROR_ILLEGAL_DIRECTIVE + 1; i++) {
+    for (i = 0; i < sizeof(errors) / sizeof(errors[0]); i++) {
         if (errors[i].code == code) {
-            return errors[i].message;
+            return errors[i].message; 
         }
     }
     return "Unknown error";
 }
 
+
 const char* get_error_name(ErrorCode code) {
-    switch(code) {
-        case ERROR_SUCCESS: return "SUCCESS";
-        case ERROR_MEMORY_ALLOCATION: return "MEMORY_ALLOCATION";
-        case ERROR_MISSING_AS_FILE: return "MISSING_AS_FILE";
-        case ERROR_FILENAME_TOO_LONG: return "FILENAME_TOO_LONG";
-        case ERROR_FILE_NOT_EXIST: return "FILE_NOT_EXIST";
-        case ERROR_MISSING_AM_FILE: return "MISSING_AM_FILE";
-        case ERROR_LINE_TOO_LONG: return "LINE_TOO_LONG";
-        case ERROR_FILE_WRITE: return "FILE_WRITE";
-        case ERROR_FILE_READ: return "FILE_READ";
-        case ERROR_MCRO_NO_NAME: return "MCRO_NO_NAME";
-        case ERROR_MCRO_EXTRA_TEXT: return "MCRO_EXTRA_TEXT";
-        case ERROR_FILE_POSITION: return "FILE_POSITION";
-        case ERROR_ENDMACRO_EXTRA_TEXT: return "ENDMACRO_EXTRA_TEXT";
-        case ERROR_MCRO_DUPLICATE: return "MCRO_DUPLICATE";
-        case ERROR_MCRO_COPY_FAILED: return "MCRO_COPY_FAILED";
-        case ERROR_MCRO_EXPANSION: return "MCRO_EXPANSION";
-        case ERROR_MCRO_BEFORE_DEF: return "MCRO_BEFORE_DEF";
-        case ERROR_MCRO_ILLEGAL_NAME: return "MCRO_ILLEGAL_NAME";
-        case ERROR_ILLEGAL_OPCODE: return "ILLEGAL_OPCODE";
-        case ERROR_EXTRA_TEXT: return "EXTRA_TEXT";
-        case ERROR_ILLEGAL_ARGUMENT: return "ILLEGAL_ARGUMENT";
-        case ERROR_MISSING_ARGUMENT: return "MISSING_ARGUMENT";
-        case ERROR_MISSING_COMMA: return "MISSING_COMMA";
-        case ERROR_UNDEFINED_LABEL: return "UNDEFINED_LABEL";
-        case ERROR_ILLEGAL_ENTRY_LABEL: return "ILLEGAL_ENTRY_LABEL";
-        case ERROR_ILLEGAL_OPCODE_COMMA: return "ILLEGAL_OPCODE_COMMA";
-        case ERROR_EXCESS_COMMAS: return "EXCESS_COMMAS";
-        case ERROR_MISPLACED_COMMA: return "MISPLACED_COMMA";
-        case ERROR_ILLEGAL_CHAR_OPCODE: return "ILLEGAL_CHAR_OPCODE";
-        case ERROR_ILLEGAL_CHAR: return "ILLEGAL_CHAR";
-        case ERROR_MISSING_NUMBER_COMMA: return "MISSING_NUMBER_COMMA";
-        case ERROR_ILLEGAL_LABEL: return "ILLEGAL_LABEL";
-        case ERROR_MISSING_LABEL_COLON: return "MISSING_LABEL_COLON";
-        case ERROR_ILLEGAL_REGISTER: return "ILLEGAL_REGISTER";
-        case ERROR_COMMA_BEFORE_OPCODE: return "COMMA_BEFORE_OPCODE";
-        case ERROR_MISSING_DIRECTIVE_DOT: return "MISSING_DIRECTIVE_DOT";
-        case ERROR_DATA_NON_NUMERIC: return "DATA_NON_NUMERIC";
-        case ERROR_DATA_TRAILING_COMMA: return "DATA_TRAILING_COMMA";
-        case ERROR_STRING_MISSING_QUOTE: return "STRING_MISSING_QUOTE";
-        case ERROR_STRING_EXTRA_TEXT: return "STRING_EXTRA_TEXT";
-        case ERROR_IC_OVERFLOW: return "IC_OVERFLOW";
-        case ERROR_LABEL_DUPLICATE: return "LABEL_DUPLICATE";
-        case ERROR_EXTERN_CONFLICT: return "EXTERN_CONFLICT";
-        case ERROR_DATA_OUT_OF_RANGE: return "DATA_OUT_OF_RANGE";
-        case ERROR_ILLEGAL_DIRECTIVE: return "ILLEGAL_DIRECTIVE";
-        default: return "UNKNOWN_ERROR";
+    int i;
+    for (i = 0; i < sizeof(errors) / sizeof(errors[0]); i++) {
+        if (errors[i].code == code) {
+            return errors[i].name; 
+        }
     }
+    return "UNKNOWN_ERROR";
 }
+
