@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "globals.h"
 #include "first_pass.h"
+#include "structs.h"
 
 
 /**
@@ -89,5 +90,7 @@ char *skip_command_name(char *line);
 ErrorCode validate_parameters(char *line, int expected_params, char params[][MAX_LINE_LENGTH]);
 
 ErrorCode validate_command_params(const char *command_name, char params[2][MAX_LINE_LENGTH]);
+
+int count_data_or_string_elements(char *ptr);
 
 #endif /* FIRST_PASS_UTILS_H */

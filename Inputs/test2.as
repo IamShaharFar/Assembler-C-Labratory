@@ -8,9 +8,9 @@ MAC1
 
 LABEL1: .data 5, 10, 15
 LABEL2: .data -3, 7, 12
-LABEL3: .string "Hello, World!"
-LABEL4: .string "Valid String"
-
+LABEL3: .string "Hello, World!" 
+LABEL4: .string "Valid String" 
+MAC1
 mov r1, r2
 cmp #5, r3
 add r1, r4
@@ -35,4 +35,5 @@ mcro MAC2
     prn #99
     clr r3
 mcroend
+MAC2
 MAC2

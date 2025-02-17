@@ -7,16 +7,7 @@
 #include "../Header_Files/globals.h"
 #include "../Header_Files/first_pass_utils.h"
 #include "../Header_Files/structs.h"
-
-static LabelTable label_table; /* Static label table to be used within the first_pass module */
-
-/**
- * @brief Initializes the label table to an empty state.
- */
-void init_label_table()
-{
-    label_table.count = 0;
-}
+#include "../Header_Files/vpc_utils.h"
 
 /**
  * @brief Adds a new label to the label table.
@@ -27,47 +18,36 @@ void init_label_table()
  * @param name The name of the label.
  * @param line_number The line number where the label was found.
  * @param line The full line content after the label.
+ * @param label_table Pointer to the label table.
  * @return ERROR_SUCCESS if the label is added successfully, otherwise returns an appropriate error code.
  */
-ErrorCode add_label(const char *name, int line_number, const char *line)
+ErrorCode add_label(const char *name, int line_number, const char *line, const char *type, LabelTable *label_table)
 {
-    if (label_table.count >= MAX_LABELS)
+    if (label_table->count >= MAX_LABELS)
     {
-        print_error(ERROR_MEMORY_ALLOCATION, line_number);
         return ERROR_MEMORY_ALLOCATION;
     }
-
-    if (label_exists(name, &label_table))
+    if (label_exists(name, label_table))
     {
-        print_error(ERROR_LABEL_DUPLICATE, line_number);
         return ERROR_LABEL_DUPLICATE;
     }
 
-    strncpy(label_table.labels[label_table.count].name, name, MAX_LINE_LENGTH - 1);
-    label_table.labels[label_table.count].name[MAX_LINE_LENGTH - 1] = '\0';
-    label_table.labels[label_table.count].line_number = line_number;
+    strncpy(label_table->labels[label_table->count].name, name, MAX_LINE_LENGTH - 1);
+    label_table->labels[label_table->count].name[MAX_LINE_LENGTH - 1] = '\0';
+    label_table->labels[label_table->count].line_number = line_number;
 
-    strncpy(label_table.labels[label_table.count].line, line, MAX_LINE_LENGTH - 1);
-    label_table.labels[label_table.count].line[MAX_LINE_LENGTH - 1] = '\0';
+    /* Assign the label type and ensure null termination */
+    strncpy(label_table->labels[label_table->count].type, type, sizeof(label_table->labels[label_table->count].type) - 1);
+    label_table->labels[label_table->count].type[sizeof(label_table->labels[label_table->count].type) - 1] = '\0';
 
-    label_table.count++;
+    /* Assign an address dynamically (example: incrementing based on label count) */
+    label_table->labels[label_table->count].address = 100 + (label_table->count * 4);
+
+    strncpy(label_table->labels[label_table->count].line, line, MAX_LINE_LENGTH - 1);
+    label_table->labels[label_table->count].line[MAX_LINE_LENGTH - 1] = '\0';
+
+    label_table->count++;
     return ERROR_SUCCESS;
-}
-
-/**
- * @brief Prints all labels stored in the label table.
- */
-void print_label_table()
-{
-    int i;
-    printf("\nLabel Table:\n");
-    for (i = 0; i < label_table.count; i++)
-    {
-        printf("Label: %s, Line Number: %d, Line Content: %s\n",
-               label_table.labels[i].name,
-               label_table.labels[i].line_number,
-               label_table.labels[i].line);
-    }
 }
 
 /**
@@ -78,8 +58,11 @@ void print_label_table()
  * The labels are stored in a LabelTable structure.
  *
  * @param fp Pointer to the assembly source file.
+ * @param vpc Virtual PC pointer.
+ * @param label_table Pointer to the label table.
+ * @return int Returns TRUE if the file is valid, FALSE otherwise.
  */
-void first_pass(FILE *fp, VirtualPC *vpc)
+int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table)
 {
     char line[MAX_LINE_LENGTH];
     char original_line[MAX_LINE_LENGTH];
@@ -88,16 +71,18 @@ void first_pass(FILE *fp, VirtualPC *vpc)
     char *colon_pos;
     char *content_after_label;
     int line_number = 0;
+    int is_valid_file = TRUE;
+    int line_dc = 0;
     size_t label_length;
     ErrorCode err;
 
-    init_label_table(); /* Initialize label table */
+    label_table->count = 0; /* Initialize label table */
     rewind(fp);
 
     while (fgets(line, MAX_LINE_LENGTH, fp))
     {
         line_number++;
-        strncpy(original_line, line, MAX_LINE_LENGTH - 1); /* Preserve the original line */
+        strncpy(original_line, line, MAX_LINE_LENGTH - 1);
         original_line[MAX_LINE_LENGTH - 1] = '\0';
 
         colon_pos = strchr(line, ':');
@@ -107,7 +92,6 @@ void first_pass(FILE *fp, VirtualPC *vpc)
             strncpy(label, line, label_length);
             label[label_length] = '\0';
 
-            /* Get the content after the label */
             content_after_label = colon_pos + 1;
             while (isspace((unsigned char)*content_after_label))
             {
@@ -117,66 +101,96 @@ void first_pass(FILE *fp, VirtualPC *vpc)
             strncpy(content, content_after_label, MAX_LINE_LENGTH - 1);
             content[MAX_LINE_LENGTH - 1] = '\0';
 
-            /* Check if the label is a valid identifier */
             if (is_valid_label(label))
             {
-                /* Check if content is a valid .data or .string directive */
                 err = is_data_storage_instruction(content);
                 if (err == ERROR_SUCCESS)
                 {
+                    err = add_label(label, line_number, content, "data", label_table);
+                    if (err != ERROR_SUCCESS)
+                    {
+                        is_valid_file = FALSE;
+                        print_error(err, line_number);
+                        continue;
+                    }
+                    print_data_or_string_binary(content);
+                    line_dc = count_data_or_string_elements(content);
+                    vpc->DC += line_dc;
                     continue;
                 }
 
-                /* If not a valid storage instruction, check if it's a valid command */
                 err = is_valid_command(content);
-                if (err != ERROR_SUCCESS)
+                if (err == ERROR_SUCCESS)
                 {
-                    print_error(ERROR_INVALID_LABEL_CONTENT, line_number);
+                    err = add_label(label, line_number, content, "code", label_table);
+                    if (err != ERROR_SUCCESS)
+                    {
+                        is_valid_file = FALSE;
+                        print_error(err, line_number);
+                        continue;
+                    }
+                    generate_binary_command(content);
                     continue;
                 }
-                err = add_label(label, line_number, content);
-                if (err != ERROR_SUCCESS)
-                {
-                    print_error(err, line_number);
-                    continue;;
-                }
-
-                continue;
+                is_valid_file = FALSE;
+                print_error(ERROR_INVALID_LABEL_CONTENT, line_number);
             }
             else
             {
+                is_valid_file = FALSE;
                 print_error(ERROR_ILLEGAL_LABEL, line_number);
             }
         }
-        /* Check if the line is a data storage instruction */
+
         if (is_valid_entry_or_extern_line(line) == TRUE)
         {
             continue;
         }
+
         err = is_data_storage_instruction(line);
         if (err == ERROR_INVALID_STORAGE_DIRECTIVE)
         {
         }
         else if (err == ERROR_SUCCESS)
         {
+            print_data_or_string_binary(line);
             continue;
         }
         else
         {
+            is_valid_file = FALSE;
             print_error(err, line_number);
             continue;
         }
+
         err = is_valid_command(line);
         if (err == ERROR_SUCCESS)
         {
-            /* printf("Valid command found at line %d: %s\n", line_number, line); */
+            continue;
         }
         else
         {
+            is_valid_file = FALSE;
             print_error(err, line_number);
         }
     }
 
-    /* Print the label table after processing */
-    /* print_label_table(); */
+    return is_valid_file;
 }
+
+/**
+ * @brief Prints all labels stored in the label table.
+ */
+/* void print_label_table()
+ *{
+ *    int i;
+ *    printf("\nLabel Table:\n");
+ *    for (i = 0; i < label_table.count; i++)
+ *    {
+ *        printf("Label: %s, Line Number: %d, Line Content: %s\n",
+ *               label_table.labels[i].name,
+ *               label_table.labels[i].line_number,
+ *               label_table.labels[i].line);
+ *    }
+ *}
+ */

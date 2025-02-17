@@ -1,6 +1,7 @@
-/* Header_Files/globals.h */
 #ifndef GLOBALS_H
 #define GLOBALS_H
+
+#include "../Header_Files/structs.h"  /* Ensure CommandInfo is defined before use */
 
 #define MAX_LINE_LENGTH 81
 #define MAX_FILENAME_LENGTH 30
@@ -19,5 +20,7 @@ extern const char *reserved_words[];
 
 extern const char *commands_names[];
 #define RESERVED_COMMANDS_COUNT 16 
+
+extern const CommandInfo commands_info[RESERVED_COMMANDS_COUNT]; /* Explicitly define array size */
 
 #endif /* GLOBALS_H */

@@ -13,4 +13,12 @@
  */
 int add_word_to_vpc(VirtualPC *vpc, Word word);
 
+void print_data_or_string_binary(char *ptr);
+
+void int_to_binary_24(int num, char binary_str[25]);
+
+void generate_binary_command(const char *line);
+
+void print_binary(unsigned int num, int bits);
+
 #endif /* VPC_UTILS_H */

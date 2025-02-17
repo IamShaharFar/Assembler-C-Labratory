@@ -6,31 +6,7 @@
 #include "globals.h"
 #include "../Header_Files/structs.h"
 #include "../Header_Files/errors.h"
-
-
-/**
- * @struct Label
- * @brief Represents a label with its name, line number, and the full line content.
- */
-typedef struct {
-    char name[MAX_LINE_LENGTH];
-    int line_number;
-    char line[MAX_LINE_LENGTH];
-} Label;
-
-/**
- * @struct LabelTable
- * @brief Holds a list of labels found in the source file.
- */
-typedef struct {
-    Label labels[MAX_LABELS];
-    int count;
-} LabelTable;
-
-/**
- * @brief Initializes the label table to an empty state.
- */
-void init_label_table();
+#include "../Header_Files/structs.h"
 
 /**
  * @brief Processes the assembly file for the first pass to identify labels.
@@ -40,13 +16,16 @@ void init_label_table();
  * The labels are stored in a LabelTable structure.
  *
  * @param fp Pointer to the assembly source file.
+ * @param vpc Virtual PC pointer.
+ * @param label_table Pointer to the label table.
+ * @return int Returns TRUE if the file is valid, FALSE otherwise.
  */
-void first_pass(FILE *fp, VirtualPC *vpc);
+int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table);
 
 /**
  * @brief Prints all labels stored in the label table.
  */
-void print_label_table();
+/* void print_label_table(); */
 
 /**
  * @brief Adds a new label to the label table.
@@ -59,6 +38,6 @@ void print_label_table();
  * @param line The full line content after the label.
  * @return ERROR_SUCCESS if the label is added successfully, otherwise returns an appropriate error code.
  */
-ErrorCode add_label(const char *name, int line_number, const char *line);
+ErrorCode add_label(const char *name, int line_number, const char *line, const char *type, LabelTable *label_table);
 
 #endif /* FIRST_PASS_H */

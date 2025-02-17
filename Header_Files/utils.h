@@ -33,6 +33,8 @@ int verify_command_end(const char* str);
 
 void trim_newline(char *str);
 
+void init_label_table(LabelTable *label_table);
+
 void init_virtual_pc(VirtualPC *vpc);
 
 #endif /* UTILS_H */

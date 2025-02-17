@@ -108,9 +108,24 @@ void trim_newline(char *str) {
     }
 }
 
+/**
+ * @brief Initializes the label table.
+ *
+ * This function resets the label table, setting the count to zero.
+ *
+ * @param label_table Pointer to the label table to be initialized.
+ */
+void init_label_table(LabelTable *label_table)
+{
+    if (label_table != NULL)
+    {
+        label_table->count = 0;
+    }
+}
+
 void init_virtual_pc(VirtualPC *vpc) {
     memset(vpc->storage, 0, sizeof(vpc->storage));  /* Initialize all storage to 0 */
-    vpc->IC = 0;  /* Initialize IC to 0 */
+    vpc->IC = 100;  /* Initialize IC to 100 */
     vpc->DC = 0;  /* Initialize DC to 0 */
 }
 

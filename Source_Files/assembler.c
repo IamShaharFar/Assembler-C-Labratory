@@ -7,6 +7,7 @@
 #include "../Header_Files/first_pass.h"
 #include "../Header_Files/structs.h"
 #include "../Header_Files/utils.h"
+#include "../Header_Files/preprocessor_utils.h"
 
 int main(int argc, char *argv[]) {
     int i;
@@ -14,6 +15,8 @@ int main(int argc, char *argv[]) {
     FILE *am_file;
     char am_filename[MAX_FILENAME_LENGTH];
     VirtualPC *vpc;  /* Change to pointer */
+    LabelTable label_table; /* Declare LabelTable */
+    McroTable mcro_table; /* Declare McroTable */
 
     vpc = (VirtualPC *)malloc(sizeof(VirtualPC));  /* Allocate memory dynamically */
     if (!vpc) {
@@ -22,6 +25,8 @@ int main(int argc, char *argv[]) {
     }
 
     init_virtual_pc(vpc);
+    init_label_table(&label_table); /* Initialize LabelTable before use */
+    init_mcro_table(&mcro_table); /* Initialize McroTable before use */
 
     if (argc < 2) {
         print_error(ERROR_MISSING_AS_FILE, 0);
@@ -30,7 +35,7 @@ int main(int argc, char *argv[]) {
     }
 
     for (i = 1; i < argc; i++) {
-        if (!process_file(argv[i])) {
+        if (!process_file(argv[i], &mcro_table)) { /* Pass McroTable to process_file */
             success = FALSE;
         } else {
             sprintf(am_filename, "%s.am", argv[i]);
@@ -39,7 +44,10 @@ int main(int argc, char *argv[]) {
                 print_error(ERROR_FILE_READ, 0);
                 success = FALSE;
             } else {
-                first_pass(am_file, vpc);
+                if (!first_pass(am_file, vpc, &label_table)) { /* Pass LabelTable to first_pass */
+                    printf("Error: First pass failed. The file contains errors and cannot be processed further.\n");
+                    success = FALSE;
+                }
                 fclose(am_file);
             }
         }

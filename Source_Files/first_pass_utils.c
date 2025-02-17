@@ -59,13 +59,14 @@ ErrorCode is_data_storage_instruction(const char *line)
     if (strncmp(line, ".data", 5) == 0 && isspace((unsigned char)line[5]))
     {
         line += 5;
-        while (isspace((unsigned char)*line)) line++;
-        
+        while (isspace((unsigned char)*line))
+            line++;
+
         if (*line == '\0')
         {
             return ERROR_INVALID_DATA_NO_NUMBER;
         }
-        
+
         while (*line)
         {
             char *endptr;
@@ -74,14 +75,16 @@ ErrorCode is_data_storage_instruction(const char *line)
             {
                 return ERROR_INVALID_DATA_NON_NUMERIC;
             }
-            
+
             line = endptr;
-            while (isspace((unsigned char)*line)) line++;
-            
+            while (isspace((unsigned char)*line))
+                line++;
+
             if (*line == ',')
             {
                 line++;
-                while (isspace((unsigned char)*line)) line++;
+                while (isspace((unsigned char)*line))
+                    line++;
                 if (*line == '\0')
                 {
                     return ERROR_INVALID_DATA_TRAILING_COMMA;
@@ -98,33 +101,35 @@ ErrorCode is_data_storage_instruction(const char *line)
     else if (strncmp(line, ".string", 7) == 0 && isspace((unsigned char)line[7]))
     {
         line += 7;
-        while (isspace((unsigned char)*line)) line++;
-        
+        while (isspace((unsigned char)*line))
+            line++;
+
         if (*line != '"')
         {
             return ERROR_INVALID_STRING_NO_QUOTE;
         }
         line++;
-        
+
         while (*line && *line != '"')
         {
             line++;
         }
-        
+
         if (*line != '"')
         {
             return ERROR_INVALID_STRING_MISSING_END_QUOTE;
         }
         line++;
-        
-        while (isspace((unsigned char)*line)) line++;
+
+        while (isspace((unsigned char)*line))
+            line++;
         if (*line != '\0')
         {
             return ERROR_INVALID_STRING_EXTRA_CHARS;
         }
         return ERROR_SUCCESS;
     }
-    
+
     return ERROR_INVALID_STORAGE_DIRECTIVE;
 }
 
@@ -139,7 +144,7 @@ int is_valid_entry_or_extern_line(char *line)
     {
         return FALSE;
     }
-    
+
     /* Check if it starts with .entry or .extern and ensure proper spacing */
     if (strncmp(line, ".entry ", 7) == 0)
     {
@@ -153,14 +158,14 @@ int is_valid_entry_or_extern_line(char *line)
     {
         return FALSE;
     }
-    
+
     /* Skip spaces after directive */
     token = advance_to_next_token(token);
     if (!token || *token == '\0')
     {
         return FALSE; /* No label provided */
     }
-    
+
     /* Check if the label is valid */
     if (sscanf(token, "%s", label) != 1)
     {
@@ -171,7 +176,7 @@ int is_valid_entry_or_extern_line(char *line)
         printf("this is not a valid label\n");
         return FALSE;
     }
-    
+
     /* Ensure there is no extra text after label */
     token += strlen(label);
     token = advance_to_next_token(token);
@@ -307,7 +312,7 @@ ErrorCode is_valid_command(const char *line)
     else
     {
         err = validate_command_params(command_name, params);
-        if(err != ERROR_SUCCESS)
+        if (err != ERROR_SUCCESS)
         {
             return err;
         }
@@ -539,4 +544,39 @@ ErrorCode validate_command_params(const char *command_name, char params[2][MAX_L
     }
 
     return ERROR_UNKNOWN_COMMAND; /* Invalid command */
+}
+
+/**
+ * @brief Counts elements in a .data or .string directive.
+ *
+ * @param ptr Pointer to the content 
+ * @return Number of elements (integers for .data, characters for .string).
+ */
+int count_data_or_string_elements(char *ptr) {
+    int count = 0;
+    
+    if (strncmp(ptr, ".data", 5) == 0) {
+        ptr += 5;
+        ptr = advance_to_next_token(ptr);
+        while (*ptr) {
+            strtol(ptr, &ptr, 10);
+            count++;
+            ptr = advance_to_next_token(ptr);
+            if (*ptr == ',') {
+                ptr++;
+                ptr = advance_to_next_token(ptr);
+            }
+        }
+    } else if (strncmp(ptr, ".string", 7) == 0) {
+        ptr += 7;
+        ptr = advance_to_next_token(ptr);
+        if (*ptr == '"') {
+            ptr++;
+            while (*ptr && *ptr != '"') {
+                count++;
+                ptr++;
+            }
+        }
+    }
+    return count;
 }

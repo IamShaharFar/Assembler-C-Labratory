@@ -5,25 +5,7 @@
 #include <stdio.h>
 #include "errors.h"
 #include "globals.h"
-
-/**
- * @struct Mcro
- * @brief Represents a macro with its name and content lines.
- */
-typedef struct {
-    char name[MAX_MCRO_NAME];
-    char content[MAX_MCRO_LINES][MAX_LINE_LENGTH];
-    int line_count;
-} Mcro;
-
-/**
- * @struct McroTable
- * @brief Holds all the macros defined in the source file.
- */
-typedef struct {
-    Mcro mcros[MAX_MCROS];
-    int count;
-} McroTable;
+#include "structs.h"
 
 /**
  * @brief Processes an assembly file to identify and store macro definitions.
@@ -31,7 +13,7 @@ typedef struct {
  * @param fp File pointer to the assembly source file.
  * @param file_path The path to the source file.
  */
-void process_as_file(FILE *fp, const char *file_path);
+void process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table);
 
 /**
  * @brief Processes the given assembly file.
@@ -39,7 +21,7 @@ void process_as_file(FILE *fp, const char *file_path);
  * @param filepath Path to the file.
  * @return 1 if processing is successful, 0 otherwise.
  */
-int process_file(const char *filepath);
+int process_file(const char* filepath, McroTable *mcro_table);
 
 /**
  * @brief Saves the processed content as a .am file.

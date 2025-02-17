@@ -9,7 +9,6 @@
 #include "../Header_Files/utils.h"
 #include "../Header_Files/preprocessor_utils.h"  
 
-static McroTable mcro_table;
 
 /**
  * @brief Checks if a given file exists.
@@ -24,27 +23,6 @@ static int file_exists(const char* filename) {
         return 1;
     }
     return 0;
-}
-
-/**
- * @brief Counts the number of files with specific extensions (.as, .am, .ob).
- *
- * @param filepath Base filepath to check.
- * @return Number of files found with matching extensions.
- */
-static int count_files_with_basename(const char* filepath) {
-    char test_filename[MAX_FILENAME_LENGTH];
-    const char* extensions[] = {".as", ".am", ".ob"};
-    int count = 0;
-    size_t i;
-
-    for (i = 0; i < sizeof(extensions)/sizeof(extensions[0]); i++) {
-        sprintf(test_filename, "%s%s", filepath, extensions[i]);
-        if (file_exists(test_filename)) {
-            count++;
-        }
-    }
-    return count;
 }
 
 /**
@@ -121,8 +99,9 @@ static char* get_directory_path(const char* filepath) {
  *
  * @param fp File pointer to the assembly source file.
  * @param file_path Path to the source file.
+ * @param mcro_table Pointer to the macro table.
  */
-void process_as_file(FILE *fp, const char *file_path)
+void process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
 {
     char line[MAX_LINE_LENGTH];
     char temp_line[MAX_LINE_LENGTH];
@@ -130,7 +109,7 @@ void process_as_file(FILE *fp, const char *file_path)
     int in_mcro = FALSE, line_number = 0;
     ErrorCode error;
 
-    init_mcro_table(&mcro_table);
+    init_mcro_table(mcro_table);
 
     while (fgets(line, MAX_LINE_LENGTH, fp))
     {
@@ -164,7 +143,7 @@ void process_as_file(FILE *fp, const char *file_path)
                 continue;
             }
 
-            error = add_mcro(&mcro_table, token);
+            error = add_mcro(mcro_table, token);
             if (error != ERROR_SUCCESS)
             {
                 print_error(error, line_number);
@@ -181,7 +160,7 @@ void process_as_file(FILE *fp, const char *file_path)
             while (*trimmed_line == ' ' || *trimmed_line == '\t')
                 trimmed_line++;
 
-            error = add_line_to_mcro(&mcro_table, trimmed_line);
+            error = add_line_to_mcro(mcro_table, trimmed_line);
             if (error != ERROR_SUCCESS)
             {
                 print_error(error, line_number);
@@ -191,27 +170,23 @@ void process_as_file(FILE *fp, const char *file_path)
     }
 
     /* Save processed content as .am file */
-    create_am_file(fp, file_path, &mcro_table);
+    create_am_file(fp, file_path, mcro_table);
 }
 
 /**
  * @brief Processes the given assembly file.
  *
  * @param filepath Path to the file.
+ * @param mcro_table Pointer to the macro table.
  * @return 1 if processing is successful, 0 otherwise.
  */
-int process_file(const char* filepath) {
+int process_file(const char* filepath, McroTable *mcro_table) {
     char* full_source_path;
     char* dir_path;
     FILE* fp;
 
     if (strlen(filepath) > MAX_FILENAME_LENGTH - 4) {
         print_error(ERROR_FILENAME_TOO_LONG, 0);
-        return 0;
-    }
-
-    if (count_files_with_basename(filepath) == 0) {
-        print_error(ERROR_FILE_NOT_EXIST, 0);
         return 0;
     }
 
@@ -243,7 +218,7 @@ int process_file(const char* filepath) {
     }
 
     /* Process macros */
-    process_as_file(fp, full_source_path);
+    process_as_file(fp, full_source_path, mcro_table);
 
     /* Cleanup */
     fclose(fp);

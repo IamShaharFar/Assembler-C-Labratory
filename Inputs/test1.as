@@ -1,18 +1,7 @@
-mcro aaa
-    inc r4
-    mov B,r3
-mcroend
-;
-aaa
+Label2: prn #48
 
-mcro bbb
-    ddd
-mcroend
+001101000000000000000100
+001101000000000000000100
 
-bbb
-hello: abcdefg
-gut: boo
-
-;ndasjbhndj
-dont do it
-hoooooo
+000000000000000110000100
+000000000000000110000100
