@@ -1,7 +1,7 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#include "../Header_Files/structs.h"  /* Ensure CommandInfo is defined before use */
+#include "../Header_Files/structs.h" 
 
 #define MAX_LINE_LENGTH 81
 #define MAX_FILENAME_LENGTH 30
@@ -16,7 +16,7 @@
 #define FALSE 0
 
 extern const char *reserved_words[];
-#define RESERVED_WORDS_COUNT 27 
+#define RESERVED_WORDS_COUNT 28 
 
 extern const char *commands_names[];
 #define RESERVED_COMMANDS_COUNT 16 

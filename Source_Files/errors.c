@@ -24,6 +24,8 @@ const Error errors[] = {
     /* Label and register errors */
     {ERROR_ILLEGAL_LABEL, "ERROR_ILLEGAL_LABEL", "Invalid label name - start with letter, use only letters and numbers"},
     {ERROR_LABEL_DUPLICATE, "ERROR_LABEL_DUPLICATE", "Duplicate label found - use a different name"},
+    {ERROR_LABEL_IS_MCRO_NAME, "ERROR_LABEL_IS_MCRO_NAME", "Label name conflicts with macro name - use a different name"},
+    {ERROR_UNDEFINED_LABEL, "ERROR_UNDEFINED_LABEL", "Undefined label - label not found in the label table"},
 
     /* Command errors */
     {ERROR_UNKNOWN_COMMAND, "ERROR_UNKNOWN_COMMAND", "Unknown command - not recognized by the assembler"},
@@ -41,6 +43,8 @@ const Error errors[] = {
     {ERROR_INVALID_RELATIVE_OR_DIRECT_OPERAND, "ERROR_INVALID_RELATIVE_OR_DIRECT_OPERAND", "Invalid operand. Expected Relative Addressing or Direct Addressing."},
     {ERROR_INVALID_IMMEDIATE_OPERAND, "ERROR_INVALID_IMMEDIATE_OPERAND", "Invalid numeric value. Expected Immediate Address."},
     {ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_OPERAND, "ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_OPERAND", "Invalid operand. Expected Immediate Address, Direct Addressing, or Register Address Direct."},
+
+    {ERROR_NOT_EXTERN_LINE, "ERROR_NOT_EXTERN_LINE", "Line is not a valid .extern directive."},
 
     /* Data storage errors */
     {ERROR_INVALID_DATA_NO_NUMBER, "ERROR_INVALID_DATA_NO_NUMBER", "Invalid .data directive: Must be followed by at least one number."},

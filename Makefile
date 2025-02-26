@@ -10,6 +10,10 @@ SOURCES = $(SRCDIR)/assembler.c \
           $(SRCDIR)/preprocessor_utils.c\
           $(SRCDIR)/first_pass.c\
           $(SRCDIR)/first_pass_utils.c\
+          $(SRCDIR)/command_utils.c\
+          $(SRCDIR)/label_utils.c\
+          $(SRCDIR)/second_pass.c\
+          $(SRCDIR)/output_builder.c\
           $(SRCDIR)/utils.c \
           $(SRCDIR)/vpc_utils.c \
           $(SRCDIR)/globals.c
@@ -20,6 +24,10 @@ OBJECTS = $(SOURCES:.c=.o)
 HEADERS = $(INCDIR)/errors.h \
           $(INCDIR)/first_pass.h \
           $(INCDOIR)/first_pass_utils.h \
+          $(INCDOIR)/command_utils.h \
+          $(INCDOIR)/label_utils.h \
+          $(INCDOIR)/second_pass.h \
+          $(INCDOIR)/output_builder.h \
           $(INCDIR)/preprocessor.h \
           $(INCDIR)/preprocessor_utils.h \
           $(INCDIR)/utils.h \

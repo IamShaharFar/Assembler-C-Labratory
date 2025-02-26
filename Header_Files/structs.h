@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+
 /* Constants */
 #define STORAGE_SIZE (1 << 21)  /* 2^21 slots */
 #define WORD_SIZE 24            /* Each word is 24 bits */
@@ -10,6 +11,7 @@
 /* Data structure for a single word */
 typedef struct {
     int32_t value : WORD_SIZE;  /* 24-bit signed integer (2's complement) */
+    char encoded[31]; 
 } Word;
 
 /* Data structure for the virtual PC */

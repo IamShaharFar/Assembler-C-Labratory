@@ -20,24 +20,13 @@
  * @param label_table Pointer to the label table.
  * @return int Returns TRUE if the file is valid, FALSE otherwise.
  */
-int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table);
+int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTable *mcro_table);
 
 /**
  * @brief Prints all labels stored in the label table.
  */
 /* void print_label_table(); */
 
-/**
- * @brief Adds a new label to the label table.
- *
- * This function adds a label if it doesn't already exist. If the label exists,
- * it triggers an error.
- *
- * @param name The name of the label.
- * @param line_number The line number where the label was found.
- * @param line The full line content after the label.
- * @return ERROR_SUCCESS if the label is added successfully, otherwise returns an appropriate error code.
- */
-ErrorCode add_label(const char *name, int line_number, const char *line, const char *type, LabelTable *label_table);
+void print_labels(const LabelTable *label_table);
 
 #endif /* FIRST_PASS_H */

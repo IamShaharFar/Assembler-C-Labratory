@@ -5,9 +5,12 @@
 #include "../Header_Files/preprocessor.h"
 #include "../Header_Files/globals.h"
 #include "../Header_Files/first_pass.h"
+#include "../Header_Files/second_pass.h"
 #include "../Header_Files/structs.h"
 #include "../Header_Files/utils.h"
+#include "../Header_Files/vpc_utils.h"
 #include "../Header_Files/preprocessor_utils.h"
+#include "../Header_Files/output_builder.h"
 
 int main(int argc, char *argv[]) {
     int i;
@@ -44,12 +47,24 @@ int main(int argc, char *argv[]) {
                 print_error(ERROR_FILE_READ, 0);
                 success = FALSE;
             } else {
-                if (!first_pass(am_file, vpc, &label_table)) { /* Pass LabelTable to first_pass */
+                if (!first_pass(am_file, vpc, &label_table, &mcro_table)) { /* Pass LabelTable to first_pass */
                     printf("Error: First pass failed. The file contains errors and cannot be processed further.\n");
                     success = FALSE;
                 }
+                if (!second_pass(am_file, &label_table, vpc)){
+                    printf("Error: Second pass failed. The file contains errors and cannot be processed further.\n");
+                    success = FALSE;
+                }
+                /* print_virtual_pc_memory(vpc);*/
+                /* print_labels(&label_table); */ /* Print labels after second pass */ 
                 fclose(am_file);
             }
+        }
+        if (success) {
+            print_words_with_labels(vpc, &label_table);
+            generate_object_file(vpc, argv[i]);
+            generate_entry_file(&label_table, argv[i]);
+            generate_externals_file(vpc, &label_table, argv[i]);
         }
     }
 

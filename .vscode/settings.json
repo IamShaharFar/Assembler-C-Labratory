@@ -3,6 +3,7 @@
         "file_processor.h": "c",
         "type_traits": "c",
         "utils.h": "c",
-        "globals.h": "c"
+        "globals.h": "c",
+        "string.h": "c"
     }
 }

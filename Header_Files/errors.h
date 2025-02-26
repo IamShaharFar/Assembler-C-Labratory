@@ -24,6 +24,8 @@ typedef enum {
     /* Label and register errors: 40-49 */
     ERROR_ILLEGAL_LABEL = 43,
     ERROR_LABEL_DUPLICATE = 44,
+    ERROR_LABEL_IS_MCRO_NAME = 45,
+    ERROR_UNDEFINED_LABEL = 46,
 
     /* Command errors: 50-59 */
     ERROR_UNKNOWN_COMMAND = 51,
@@ -39,6 +41,8 @@ typedef enum {
     ERROR_INVALID_RELATIVE_OR_DIRECT_OPERAND = 62,
     ERROR_INVALID_IMMEDIATE_OPERAND = 63,
     ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_OPERAND = 64,
+
+    ERROR_NOT_EXTERN_LINE = 68,
 
     /* Data storage errors */
     ERROR_INVALID_DATA_NO_NUMBER = 70,
