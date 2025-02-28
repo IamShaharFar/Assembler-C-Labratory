@@ -43,16 +43,15 @@ void int_to_binary_24(int num, char binary_str[25])
 }
 
 /**
- * @brief Prints the binary representation of each element in a valid .data or .string directive
- *        and returns the count of printed binary words.
+ * @brief Processes .data or .string directive and stores binary words in VirtualPC.
  *
- * @param ptr Pointer to the content after .data or .string.
- * @return int The count of binary words printed.
+ * @param ptr Pointer to the .data or .string. line content.
+ * @param vpc Pointer to the VirtualPC structure.
+ * @return int The count of binary words stored.
  */
-int print_data_or_string_binary(char *ptr, int address, VirtualPC *vpc)
+int process_data_or_string_directive(char *ptr, VirtualPC *vpc)
 {
-    char binary_str[25];
-    int count = 0;
+    int count = 0; /* Count of the line dc */
     ptr = advance_to_next_token(ptr);
 
     if (strncmp(ptr, ".data", 5) == 0)
@@ -60,25 +59,26 @@ int print_data_or_string_binary(char *ptr, int address, VirtualPC *vpc)
         ptr += 5;
         ptr = advance_to_next_token(ptr);
 
+        /* Iterate over numbers */
         while (*ptr)
         {
             char *endptr;
-            int num = strtol(ptr, &endptr, 10);
+            int num = strtol(ptr, &endptr, 10); /* Convert number */
+
+            /* Check if the number is valid */
             if (ptr == endptr)
                 break;
 
-            int_to_binary_24(num, binary_str);
-            /* Store binary word in VirtualPC storage */
             if (vpc->DC + vpc->IC < STORAGE_SIZE)
             {
-                vpc->storage[vpc->DC + vpc->IC].value = num & 0xFFFFFF; /* Ensure 24-bit storage */
-                sprintf(vpc->storage[vpc->DC + vpc->IC].encoded, "%d", num);
-                vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0';
+                vpc->storage[vpc->DC + vpc->IC].value = num & 0xFFFFFF; /* Store the number in bits 0-23 */
+                sprintf(vpc->storage[vpc->DC + vpc->IC].encoded, "%d", num); /* Store the number as a string */
+                vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0'; /* Ensure null-termination */
                 vpc->DC++;
             }
 
             count++;
-            ptr = endptr;
+            ptr = endptr; /* Move to the next token */
             ptr = advance_to_next_token(ptr);
             if (*ptr == ',')
             {
@@ -92,51 +92,35 @@ int print_data_or_string_binary(char *ptr, int address, VirtualPC *vpc)
         ptr += 7;
         ptr = advance_to_next_token(ptr);
 
+        /* Check for valid string */
         if (*ptr == '"')
         {
             ptr++;
+
+            /* Iterate over characters in the string */
             while (*ptr && *ptr != '"')
             {
-                int_to_binary_24((int)(*ptr), binary_str);
-                /* printf("address: %d - %s\n", address + count, binary_str); */
-
-                /* Store character as binary in VirtualPC storage */
                 if (vpc->DC + vpc->IC < STORAGE_SIZE)
                 {
-                    vpc->storage[vpc->DC + vpc->IC].value = (int)(*ptr) & 0xFFFFFF;
-                    sprintf(vpc->storage[vpc->DC + vpc->IC].encoded, "%c", *ptr);
+                    vpc->storage[vpc->DC + vpc->IC].value = (int)(*ptr) & 0xFFFFFF; /* Store the character in bits 0-23 */
+                    sprintf(vpc->storage[vpc->DC + vpc->IC].encoded, "%c", *ptr); /* Store the character as a string */
                     vpc->DC++;
                 }
 
                 count++;
                 ptr++;
             }
-            /* Encode and print the null terminator ('\0') */
-            int_to_binary_24(0, binary_str);
-            /* printf("address: %d - %s\n", address + count, binary_str); */
 
-            /* Store null terminator in VirtualPC storage */
             if (vpc->DC + vpc->IC < STORAGE_SIZE)
             {
-                vpc->storage[vpc->DC + vpc->IC].value = 0;
+                vpc->storage[vpc->DC + vpc->IC].value = 0; /* Store null-terminator */
                 vpc->DC++;
             }
 
             count++;
         }
     }
-    /* print_virtual_pc_memory(vpc); */
     return count;
-}
-
-void print_binary(unsigned int num, int bits)
-{
-    int i;
-    for (i = bits - 1; i >= 0; i--)
-    {
-        printf("%d", (num >> i) & 1);
-    }
-    printf("\n");
 }
 
 int generate_binary_command(const char *line, int address, VirtualPC *vpc)
@@ -403,100 +387,105 @@ void print_virtual_pc_memory(const VirtualPC *vpc)
 }
 
 /**
- * @brief Prints words where the encoded string starts with '&' or matches a label from the label table.
+ * @brief Resolves and updates words in VirtualPC storage with label addresses.
  *
- * This function scans the VirtualPC storage from address 100 to (100 + IC + DC),
+ * This function scans the VirtualPC storage from address 100 to (IC + DC),
  * checking if a word's `encoded` field starts with '&' (indicating relative addressing)
- * or contains a label from the label table.
+ * or contains a label from the label table. It then updates the word's value with the
+ * appropriate address or relative offset.
  *
  * @param vpc Pointer to the VirtualPC structure.
  * @param label_table Pointer to the LabelTable structure.
  */
-void print_words_with_labels(VirtualPC *vpc, const LabelTable *label_table)
+int resolve_and_update_labels(VirtualPC *vpc, const LabelTable *label_table)
 {
+    /* Initialize start and end addresses for scanning the VirtualPC storage */
     uint32_t start_addr = 100;
-    uint32_t end_addr = 100 + vpc->IC + vpc->DC;
+    uint32_t end_addr = vpc->IC + vpc->DC;
+
+    /* Loop variables and temporary storage for label address and value */
     int i, j;
     int label_address = 0;
     int value = 0;
+    int is_valid = TRUE;
 
     if (vpc == NULL || label_table == NULL)
     {
-        fprintf(stderr, "Error: NULL pointer passed to print_words_with_labels.\n");
-        return;
+        is_valid = FALSE;
+        fprintf(stderr, "Error: NULL pointer passed to resolve_and_update_labels.\n");
+        return is_valid;
     }
 
-    printf("Words with Labels or Relative Addressing:\n");
-    printf("--------------------------------------------------------------------------\n");
-    printf("| Address | Encoded String       | Binary Value  | Value                  |\n");
-    printf("--------------------------------------------------------------------------\n");
-
-    /* Scan through VirtualPC storage */
+    /* Loop through VirtualPC storage to resolve and update label addresses */
     for (i = start_addr; i < end_addr; i++)
     {
         char *encoded_str = vpc->storage[i].encoded;
-        int32_t word_value = vpc->storage[i].value; /* Copy word value */
-        label_address = 0;                          /* Reset label address */
-        value = 0;                                  /* Reset computed value */
+        int32_t word_value = vpc->storage[i].value;
+        label_address = 0;
+        value = 0;
 
-        /* Check if the encoded string starts with '&' (Relative Addressing) */
+        /* Check if the given encoded string indicates a label passed by Relative addressing.
+         * If true, the function will calculate the distance from the current address to the label address. */
         if (encoded_str[0] == '&')
         {
-            /* Remove '&' and find the corresponding label */
+            int label_found = 0;
             for (j = 0; j < label_table->count; j++)
             {
                 if (strcmp(&encoded_str[1], label_table->labels[j].name) == 0)
                 {
+                    label_found = 1;
                     label_address = label_table->labels[j].address;
-                    value = label_address - (i - 1); /* Compute relative value */
+                    if (label_address == 0)
+                    {
+                        is_valid = FALSE;
+                        fprintf(stderr, "Error: Label '%s' has address 0.\n", &encoded_str[1]);
+                        break;
+                    }
+                    /* Calculate relative address (-1 to reach command address) */
+                    value = label_address - (i - 1);
 
-                    /* Modify word value: Insert `value` into bits 3-23 */
                     word_value &= ~(0x1FFFFF << 3);        /* Clear bits 3-23 */
-                    word_value |= (value & 0x1FFFFF) << 3; /* Set bits 3-23 */
-                    vpc->storage[i].value = word_value;    /* Store modified value */
+                    word_value |= (value & 0x1FFFFF) << 3; /* Set bits 3-23 with the value*/
+                    vpc->storage[i].value = word_value;
 
                     break;
                 }
             }
-
-            printf("| %-7u | %-20s | 0x%06X | %-22d |\n", i, encoded_str, word_value, value);
+            if (!label_found)
+            {
+                is_valid = FALSE;
+                fprintf(stderr, "Error: No matching label found for '%s'.\n", &encoded_str[1]);
+            }
             continue;
         }
 
-        /* Check if the encoded string matches any label in the label table */
         for (j = 0; j < label_table->count; j++)
         {
+            /* check if the encoded string is a label */
             if (strcmp(encoded_str, label_table->labels[j].name) == 0)
             {
                 label_address = label_table->labels[j].address;
-                value = label_address; /* Direct label address */
+                value = label_address;
 
-                /* Reset word value */
-                vpc->storage[i].value = 0;
+                vpc->storage[i].value = 0;                        /* Clear the value */
+                vpc->storage[i].value |= (value & 0x1FFFFF) << 3; /* Set bits 3-23 with the value*/
+                vpc->storage[i].value &= ~(1 << 2);               /* Set bit 2 to 0 */
 
-                /* Insert `value` into bits 3-23 */
-                vpc->storage[i].value |= (value & 0x1FFFFF) << 3; /* Store value in bits 3-23 */
-
-                /* Ensure bit 2 is 0 */
-                vpc->storage[i].value &= ~(1 << 2);
-
-                /* Set bits 0 and 1 based on label type */
+                /* Set the E/R bits based on the label type */
                 if (strcmp(label_table->labels[j].type, "external") == 0)
                 {
-                    vpc->storage[i].value |= (1 << 0);  /* Bit 0 = 1 */
-                    vpc->storage[i].value &= ~(1 << 1); /* Bit 1 = 0 */
+                    vpc->storage[i].value |= (1 << 0);  /* Set bit 0 to 1 */
+                    vpc->storage[i].value &= ~(1 << 1); /* Set bit 1 to 0 */
                 }
                 else
                 {
-                    vpc->storage[i].value &= ~(1 << 0); /* Bit 0 = 0 */
-                    vpc->storage[i].value |= (1 << 1);  /* Bit 1 = 1 */
+                    vpc->storage[i].value &= ~(1 << 0); /* Set bit 0 to 0 */
+                    vpc->storage[i].value |= (1 << 1);  /* Set bit 1 to 1 */
                 }
 
-                printf("| %-7u | %-20s | 0x%06X | %-22d |\n", i, encoded_str, vpc->storage[i].value, value);
                 break;
             }
         }
     }
-
-    printf("--------------------------------------------------------------------------\n");
+    return is_valid;
 }

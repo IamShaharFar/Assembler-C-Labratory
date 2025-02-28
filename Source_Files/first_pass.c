@@ -80,7 +80,7 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
                         print_error(err, line_number);
                         continue;
                     }
-                    ic += print_data_or_string_binary(content, ic, vpc);
+                    ic += process_data_or_string_directive(content, vpc);
                     continue;
                 }
 
@@ -141,7 +141,7 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
         }
         else if (err == ERROR_SUCCESS)
         {
-            ic += print_data_or_string_binary(line, ic, vpc);
+            ic += process_data_or_string_directive(line, vpc);
             continue;
         }
         else

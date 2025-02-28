@@ -13,26 +13,31 @@
  */
 int add_word_to_vpc(VirtualPC *vpc, Word word);
 
-int print_data_or_string_binary(char *ptr, int address, VirtualPC *vpc);
+/**
+ * @brief Processes .data or .string directive and stores binary words in VirtualPC.
+ *
+ * @param ptr Pointer to the content after .data or .string.
+ * @return int The count of binary words stored.
+ */
+int process_data_or_string_directive(char *ptr, VirtualPC *vpc);
 
 void int_to_binary_24(int num, char binary_str[25]);
 
 int generate_binary_command(const char *line, int address, VirtualPC *vpc);
 
-void print_binary(unsigned int num, int bits);
-
 void print_virtual_pc_memory(const VirtualPC *vpc);
 
 /**
- * @brief Prints words where the encoded string starts with '&' or contains a label from the label table.
+ * @brief Resolves and updates words in VirtualPC storage with label addresses.
  *
- * This function scans the VirtualPC storage from address 100 to (100 + IC + DC),
- * checking if a word's `command_str` field starts with '&' (indicating relative addressing)
- * or contains a label from the label table.
+ * This function scans the VirtualPC storage from address 100 to (IC + DC),
+ * checking if a word's `encoded` field starts with '&' (indicating relative addressing)
+ * or contains a label from the label table. It then updates the word's value with the
+ * appropriate address or relative offset.
  *
  * @param vpc Pointer to the VirtualPC structure.
  * @param label_table Pointer to the LabelTable structure.
  */
-void print_words_with_labels(VirtualPC *vpc, const LabelTable *label_table);
+int resolve_and_update_labels(VirtualPC *vpc, const LabelTable *label_table);
 
 #endif /* VPC_UTILS_H */

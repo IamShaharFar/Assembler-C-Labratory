@@ -37,12 +37,12 @@ void generate_object_file(const VirtualPC *vpc, const char *filename)
     }
 
     /* Write IC - 100 and DC in the first line */
-    fprintf(ob_file, "%d %d\n", vpc->IC - 100, vpc->DC);
+    fprintf(ob_file, "%7d %d\n", vpc->IC - 100, vpc->DC);
 
     /* Write the memory content */
     for (i = start_addr; i < end_addr; i++)
     {
-        fprintf(ob_file, "%06d %06x\n", i, vpc->storage[i].value & 0xFFFFFF);
+        fprintf(ob_file, "%07d %06x\n", i, vpc->storage[i].value & 0xFFFFFF);
 /* Ensure 24-bit representation */
     }
 

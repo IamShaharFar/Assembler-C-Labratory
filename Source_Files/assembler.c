@@ -60,8 +60,10 @@ int main(int argc, char *argv[]) {
                 fclose(am_file);
             }
         }
+        if (resolve_and_update_labels(vpc, &label_table) == FALSE) {
+            success = FALSE;
+        }
         if (success) {
-            print_words_with_labels(vpc, &label_table);
             generate_object_file(vpc, argv[i]);
             generate_entry_file(&label_table, argv[i]);
             generate_externals_file(vpc, &label_table, argv[i]);
