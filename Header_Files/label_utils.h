@@ -11,16 +11,16 @@
  #include "../Header_Files/errors.h"
  #include "../Header_Files/structs.h"
  
- /*
-  * Function: is_valid_label
-  * ------------------------
-  * Validates whether a given string is a valid label name.
-  *
-  * label: The label string to check.
-  *
-  * returns: TRUE if the label is valid, FALSE otherwise.
-  */
- int is_valid_label(const char *label);
+/*
+ * Function: is_valid_label
+ * ------------------------
+ * Validates whether a given string is a valid label name.
+ *
+ * label: The label string to check.
+ *
+ * returns: ERROR_SUCCESS if the label is valid, otherwise an appropriate error code.
+ */
+ErrorCode is_valid_label(const char *label);
  
  /*
   * Function: label_exists
@@ -79,7 +79,7 @@ ErrorCode is_valid_entry_label(const char *line, LabelTable *label_table);
  * @param label_table Pointer to the label table.
  * @return ERROR_SUCCESS if the label is added successfully, otherwise returns an appropriate error code.
  */
-ErrorCode add_label(const char *name, int line_number, const char *line, const char *type, int address, LabelTable *label_table, const McroTable *mcro_table);
+ErrorCode add_label(const char *name, int line_number, const char *line, const char *type, VirtualPC *vpc, LabelTable *label_table, const McroTable *mcro_table);
  
 /**
  * @brief Prints the names of all macros in the given McroTable.

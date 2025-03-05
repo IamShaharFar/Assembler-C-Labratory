@@ -27,10 +27,6 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    init_virtual_pc(vpc);
-    init_label_table(&label_table); /* Initialize LabelTable before use */
-    init_mcro_table(&mcro_table); /* Initialize McroTable before use */
-
     if (argc < 2) {
         print_error(ERROR_MISSING_AS_FILE, 0);
         free(vpc);  /* Free allocated memory before exiting */
@@ -38,21 +34,25 @@ int main(int argc, char *argv[]) {
     }
 
     for (i = 1; i < argc; i++) {
+        success = TRUE;
+        init_virtual_pc(vpc);
+        init_label_table(&label_table); /* Initialize LabelTable before use */
+        init_mcro_table(&mcro_table); /* Initialize McroTable before use */
         if (!process_file(argv[i], &mcro_table)) { /* Pass McroTable to process_file */
+            print_error_no_line(ERROR_FILE_PROCESSING);
             success = FALSE;
         } else {
             sprintf(am_filename, "%s.am", argv[i]);
             am_file = fopen(am_filename, "r");
             if (!am_file) {
-                print_error(ERROR_FILE_READ, 0);
+                print_error_no_line(ERROR_FILE_READ);
                 success = FALSE;
             } else {
+                rewind(am_file);
                 if (!first_pass(am_file, vpc, &label_table, &mcro_table)) { /* Pass LabelTable to first_pass */
-                    printf("Error: First pass failed. The file contains errors and cannot be processed further.\n");
                     success = FALSE;
                 }
                 if (!second_pass(am_file, &label_table, vpc)){
-                    printf("Error: Second pass failed. The file contains errors and cannot be processed further.\n");
                     success = FALSE;
                 }
                 /* print_virtual_pc_memory(vpc);*/
@@ -67,6 +67,9 @@ int main(int argc, char *argv[]) {
             generate_object_file(vpc, argv[i]);
             generate_entry_file(&label_table, argv[i]);
             generate_externals_file(vpc, &label_table, argv[i]);
+        }
+        else {
+            print_error_no_line(ERROR_ASSEMBLY_FAILED);
         }
     }
 

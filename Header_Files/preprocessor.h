@@ -8,12 +8,16 @@
 #include "structs.h"
 
 /**
- * @brief Processes an assembly file to identify and store macro definitions.
+ * @brief Processes the macros in the given assembly file.
  *
  * @param fp File pointer to the assembly source file.
- * @param file_path The path to the source file.
+ * @param file_path Path to the source file.
+ * @param mcro_table Pointer to the macro table.
+ * @return TRUE if the file is valid and processed successfully, FALSE otherwise.
+ *
+ * Example of an error: A file containing a line longer than the maximum allowed length.
  */
-void process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table);
+int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table);
 
 /**
  * @brief Processes the given assembly file.

@@ -6,6 +6,9 @@ const Error errors[] = {
     /* General errors */
     {ERROR_SUCCESS, "ERROR_SUCCESS", "Operation completed successfully"},
     {ERROR_MEMORY_ALLOCATION, "ERROR_MEMORY_ALLOCATION", "Not enough memory available to complete operation"},
+    {ERROR_NULL_POINTER, "ERROR_NULL_POINTER", "Null pointer encountered"},
+    {ERROR_FILE_PROCESSING, "ERROR_FILE_PROCESSING", "Error in preprocessing file, cannot continue"},
+    {ERROR_ASSEMBLY_FAILED, "ERROR_ASSEMBLY_FAILED", "Assembly process failed, could not generate output file"},
 
     /* File errors */
     {ERROR_MISSING_AS_FILE, "ERROR_MISSING_AS_FILE", "Missing source file - please provide a .as file"},
@@ -22,14 +25,22 @@ const Error errors[] = {
     {ERROR_MCRO_ILLEGAL_NAME, "ERROR_MCRO_ILLEGAL_NAME", "Invalid macro name - use only letters and numbers"},
 
     /* Label and register errors */
+    {ERROR_LABEL_TOO_LONG, "ERROR_LABEL_TOO_LONG", "Label name is too long - maximum length is 30 characters"},
+    {ERROR_ILLEGAL_LABEL_START, "ERROR_ILLEGAL_LABEL_START", "Invalid label name - start with letter, use only letters and numbers for the rest"},
+    {ERROR_ILLEGAL_LABEL_CHAR, "ERROR_ILLEGAL_LABEL_CHAR", "Invalid label name - use only letters and numbers"},
+    {ERRPR_LABEL_IS_RESERVED_WORD, "ERRPR_LABEL_IS_RESERVED_WORD", "Invalid label name - cannot use reserved words"},
     {ERROR_ILLEGAL_LABEL, "ERROR_ILLEGAL_LABEL", "Invalid label name - start with letter, use only letters and numbers"},
     {ERROR_LABEL_DUPLICATE, "ERROR_LABEL_DUPLICATE", "Duplicate label found - use a different name"},
     {ERROR_LABEL_IS_MCRO_NAME, "ERROR_LABEL_IS_MCRO_NAME", "Label name conflicts with macro name - use a different name"},
     {ERROR_UNDEFINED_LABEL, "ERROR_UNDEFINED_LABEL", "Undefined label - label not found in the label table"},
+    {ERROR_UNDEFINED_LABEL_RELATIVE, "ERROR_UNDEFINED_LABEL_RELATIVE", "Undefined label - label not found in the label table for relative addressing"},
+    {ERROR_RELATIVE_ADDRESSING_EXTERNAL_LABEL, "ERROR_RELATIVE_ADDRESSING_EXTERNAL_LABEL", "Cannot use relative addressing with an external label"},
+    {ERROR_LABEL_NOT_DEFINED_IN_FILE, "ERROR_LABEL_NOT_DEFINED_IN_FILE", "Label not defined in the file - cannot use as an entry"},
+    {ERROR_LABEL_IS_REGISTER, "ERROR_LABEL_IS_REGISTER", "Invalid label name - cannot use register names"},
 
     /* Command errors */
     {ERROR_UNKNOWN_COMMAND, "ERROR_UNKNOWN_COMMAND", "Unknown command - not recognized by the assembler"},
-    {ERROR_INVALID_PARAM_COUNT, "ERROR_INVALID_PARAM_COUNT", "Invalid number of parameters - check the expected parameter count"},
+    {ERROR_INVALID_PARAM_COUNT, "ERROR_INVALID_PARAM_COUNT", "Missing parameters - check the command syntax"},
     {ERROR_MISSING_COMMA, "ERROR_MISSING_COMMA","Missing comma between parameters - add a comma"},
     {ERROR_CONSECUTIVE_COMMAS, "ERROR_CONSECUTIVE_COMMAS","Consecutive commas detected - remove extra commas"},
     {ERROR_EXTRA_TEXT_AFTER_COMMAND, "ERROR_EXTRA_TEXT_AFTER_COMMAND","Extra text after command - remove unnecessary text"},

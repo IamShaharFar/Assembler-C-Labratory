@@ -35,5 +35,19 @@
  */
  int second_pass(FILE *am_file, LabelTable *label_table, VirtualPC *vpc);
  
+/**
+ * @brief Processes a command line to validate operands and check for undefined labels.
+ *
+ * This function takes the content of a command line after the label and performs validation
+ * on the operands. It also checks for any undefined labels in the provided label table.
+ *
+ * @param content_after_label Pointer to the command line content after the label.
+ * @param label_table Pointer to the LabelTable structure containing symbol information.
+ * @param line_number The current line number in the source file.
+ * @param is_valid_file Pointer to the flag indicating if the file is valid.
+ * @return void
+ */
+void validate_labels_and_relative_addresses(char *content_after_label, LabelTable *label_table, int line_number, int *is_valid_file);
+
  #endif /* SECOND_PASS_H */
  

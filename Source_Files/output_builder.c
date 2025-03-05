@@ -74,6 +74,27 @@ void generate_entry_file(const LabelTable *label_table, const char *filename)
     FILE *ent_file;
     int i;
     Label sorted_labels[100];
+    int entry_count = 0;
+
+    /* Sort labels by address */
+    memcpy(sorted_labels, label_table->labels, label_table->count * sizeof(Label));
+    qsort(sorted_labels, label_table->count, sizeof(Label), compare_labels_by_address);
+
+    /* Check if there are any entry labels */
+    for (i = 0; i < label_table->count; i++)
+    {
+        if (strstr(sorted_labels[i].type, "entry") != NULL)
+        {
+            entry_count++;
+        }
+    }
+
+    /* If no entry labels, do not create the file */
+    if (entry_count == 0)
+    {
+        printf("No entry labels found. Entry file not created.\n");
+        return;
+    }
 
     /* Construct the .ent filename */
     sprintf(ent_filename, "%s.ent", filename);
@@ -85,10 +106,6 @@ void generate_entry_file(const LabelTable *label_table, const char *filename)
         fprintf(stderr, "Error: Failed to create entry file %s\n", ent_filename);
         return;
     }
-
-    /* Sort labels by address */
-    memcpy(sorted_labels, label_table->labels, label_table->count * sizeof(Label));
-    qsort(sorted_labels, label_table->count, sizeof(Label), compare_labels_by_address);
 
     /* Write the labels marked as "entry" */
     for (i = 0; i < label_table->count; i++)
@@ -122,6 +139,7 @@ void generate_externals_file(const VirtualPC *vpc, const LabelTable *label_table
     uint32_t start_addr = 100;
     uint32_t end_addr = vpc->IC + vpc->DC;
     int i, j;
+    int extern_count = 0;
 
     /* Construct the .ext filename */
     sprintf(ext_filename, "%s.ext", filename);
@@ -135,6 +153,8 @@ void generate_externals_file(const VirtualPC *vpc, const LabelTable *label_table
     }
 
     /* Scan through VirtualPC storage */
+
+
     for (i = start_addr; i < end_addr; i++)
     {
         const char *encoded_str = vpc->storage[i].encoded;
@@ -147,9 +167,19 @@ void generate_externals_file(const VirtualPC *vpc, const LabelTable *label_table
             {
                 /* Write to file: label name and address in 7-digit format */
                 fprintf(ext_file, "%s %07u\n", encoded_str, i);
+                extern_count++;
                 break;
             }
         }
+    }
+
+    /* If no extern labels, do not create the file */
+    if (extern_count == 0)
+    {
+        fclose(ext_file);
+        remove(ext_filename);
+        printf("No extern labels found. Externals file not created.\n");
+        return;
     }
 
     fclose(ext_file);

@@ -59,7 +59,7 @@
      int expected_params;
      char saved_char;
      ErrorCode err;
- 
+    
      /* Copy the line to a temporary buffer */
      strncpy(temp_line, line, MAX_LINE_LENGTH - 1);
      temp_line[MAX_LINE_LENGTH - 1] = '\0';
@@ -183,7 +183,6 @@
  {
      char *ptr = line;
      int i, j;
- 
      if (expected_params == 0)
      {
          ptr = advance_to_next_token(ptr);
@@ -215,6 +214,11 @@
  
          if (i == 0 && expected_params == 2)
              ptr++;
+         ptr = advance_to_next_token(ptr);
+         if (i == 0 && expected_params == 2 && *ptr == ',')
+         {
+             return ERROR_CONSECUTIVE_COMMAS; /* Consecutive commas */
+         }
      }
  
      return *ptr == '\0' ? ERROR_SUCCESS : ERROR_EXTRA_TEXT_AFTER_COMMAND;
@@ -241,7 +245,7 @@
          strcmp(command_name, "inc") == 0 || strcmp(command_name, "dec") == 0 ||
          strcmp(command_name, "red") == 0)
      {
-         if (validate_register_operand(params[0]) || is_valid_label(params[0]))
+         if (validate_register_operand(params[0]) || is_valid_label(params[0]) == ERROR_SUCCESS)
          {
              return ERROR_SUCCESS;
          }
@@ -250,11 +254,11 @@
  
      if (strcmp(command_name, "mov") == 0 || strcmp(command_name, "add") == 0 || strcmp(command_name, "sub") == 0)
      {
-         if (!(params[0][0] == '#' && strtol(params[0] + 1, NULL, 10) != 0) && !is_valid_label(params[0]) && !validate_register_operand(params[0]))
+         if (!(params[0][0] == '#' && strtol(params[0] + 1, NULL, 10) != 0) && is_valid_label(params[0]) != ERROR_SUCCESS && !validate_register_operand(params[0]))
          {
              return ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_FIRST_OPERAND;
          }
-         if (!is_valid_label(params[1]) && !validate_register_operand(params[1]))
+         if (is_valid_label(params[1]) != ERROR_SUCCESS && !validate_register_operand(params[1]))
          {
              return ERROR_INVALID_DIRECT_OR_REGISTER_SECOND_OPERAND;
          }
@@ -263,11 +267,11 @@
  
      if (strcmp(command_name, "cmp") == 0)
      {
-         if (!(params[0][0] == '#' && strtol(params[0] + 1, NULL, 10) != 0) && !is_valid_label(params[0]) && !validate_register_operand(params[0]))
+         if (!(params[0][0] == '#' && strtol(params[0] + 1, NULL, 10) != 0) && is_valid_label(params[0]) != ERROR_SUCCESS && !validate_register_operand(params[0]))
          {
              return ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_FIRST_OPERAND;
          }
-         if (!(params[1][0] == '#' && strtol(params[1] + 1, NULL, 10) != 0) && !is_valid_label(params[1]) && !validate_register_operand(params[1]))
+         if (!(params[1][0] == '#' && strtol(params[1] + 1, NULL, 10) != 0) && is_valid_label(params[1]) != ERROR_SUCCESS && !validate_register_operand(params[1]))
          {
              return ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_SECOND_OPERAND;
          }
@@ -276,11 +280,11 @@
  
      if (strcmp(command_name, "lea") == 0)
      {
-         if (!is_valid_label(params[0]))
+         if (is_valid_label(params[0]) != ERROR_SUCCESS)
          {
              return ERROR_INVALID_DIRECT_FIRST_OPERAND;
          }
-         if (!is_valid_label(params[1]) && !validate_register_operand(params[1]))
+         if (is_valid_label(params[1]) != ERROR_SUCCESS && !validate_register_operand(params[1]))
          {
              return ERROR_INVALID_DIRECT_OR_REGISTER_SECOND_OPERAND;
          }
@@ -289,7 +293,7 @@
  
      if (strcmp(command_name, "jmp") == 0 || strcmp(command_name, "bne") == 0 || strcmp(command_name, "jsr") == 0)
      {
-         if (!is_valid_label(params[0]) && !(params[0][0] == '&' && is_valid_label(params[0] + 1)))
+         if (is_valid_label(params[0]) != ERROR_SUCCESS && !(params[0][0] == '&' && is_valid_label(params[0] + 1) == ERROR_SUCCESS))
          {
              return ERROR_INVALID_RELATIVE_OR_DIRECT_OPERAND;
          }
@@ -308,7 +312,7 @@
              }
              return ERROR_SUCCESS;
          }
-         if (!is_valid_label(params[0]) && !validate_register_operand(params[0]))
+         if (is_valid_label(params[0]) == ERROR_SUCCESS && !validate_register_operand(params[0]))
          {
              return ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_OPERAND;
          }

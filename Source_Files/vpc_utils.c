@@ -71,8 +71,8 @@ int process_data_or_string_directive(char *ptr, VirtualPC *vpc)
 
             if (vpc->DC + vpc->IC < STORAGE_SIZE)
             {
-                vpc->storage[vpc->DC + vpc->IC].value = num & 0xFFFFFF; /* Store the number in bits 0-23 */
-                sprintf(vpc->storage[vpc->DC + vpc->IC].encoded, "%d", num); /* Store the number as a string */
+                vpc->storage[vpc->DC + vpc->IC].value = num & 0xFFFFFF;                                              /* Store the number in bits 0-23 */
+                sprintf(vpc->storage[vpc->DC + vpc->IC].encoded, "%d", num);                                         /* Store the number as a string */
                 vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0'; /* Ensure null-termination */
                 vpc->DC++;
             }
@@ -103,7 +103,7 @@ int process_data_or_string_directive(char *ptr, VirtualPC *vpc)
                 if (vpc->DC + vpc->IC < STORAGE_SIZE)
                 {
                     vpc->storage[vpc->DC + vpc->IC].value = (int)(*ptr) & 0xFFFFFF; /* Store the character in bits 0-23 */
-                    sprintf(vpc->storage[vpc->DC + vpc->IC].encoded, "%c", *ptr); /* Store the character as a string */
+                    sprintf(vpc->storage[vpc->DC + vpc->IC].encoded, "%c", *ptr);   /* Store the character as a string */
                     vpc->DC++;
                 }
 
@@ -123,14 +123,22 @@ int process_data_or_string_directive(char *ptr, VirtualPC *vpc)
     return count;
 }
 
-int generate_binary_command(const char *line, int address, VirtualPC *vpc)
+/**
+ * Generates a binary command from the given assembly line and stores it in the VirtualPC structure.
+ *
+ * @param line The assembly line to be converted into a binary command.
+ * @param vpc A pointer to the VirtualPC structure where the binary command will be stored.
+ * @return An integer indicating the success or failure of the operation.
+ */
+
+int generate_binary_command(const char *line, VirtualPC *vpc)
 {
     char command[MAX_LINE_LENGTH];
     char param1[MAX_LINE_LENGTH] = "";
     char param2[MAX_LINE_LENGTH] = "";
     char *modifiable_line;
     char *ptr;
-    int expected_params, i, value;
+    int expected_params, i;
     unsigned int first_word = 0;
     unsigned int second_word = 0;
     unsigned int third_word = 0;
@@ -141,7 +149,7 @@ int generate_binary_command(const char *line, int address, VirtualPC *vpc)
     modifiable_line = malloc(strlen(line) + 1);
     if (!modifiable_line)
     {
-        printf("Error: Memory allocation failed!\n");
+        print_error_no_line(ERROR_MEMORY_ALLOCATION);
         return 0;
     }
     strcpy(modifiable_line, line);
@@ -182,138 +190,19 @@ int generate_binary_command(const char *line, int address, VirtualPC *vpc)
 
     if (opcode == -1)
     {
-        printf("Error: Unknown command name!\n");
+        print_error_no_line(ERROR_UNKNOWN_COMMAND);
         free(modifiable_line);
         return 0;
     }
 
     if (expected_params == 1)
     {
-        if (!validate_register_operand(param1))
-        {
-            param_flags[0] = 1;
-            if (param1[0] == '#')
-            {
-                first_word |= (0 & 0x03) << 11; /* Set bits 11-12 to 0 */
-                first_word |= (0 & 0x07) << 8;  /* Set bits 8-10 to 0 */
-                value = atoi(&param1[1]);       /* Convert number after '#' */
-                /* Convert to two's complement if negative */
-                if (value < 0)
-                {
-                    value = (1 << 21) + value; /* Two's complement for 21-bit signed numbers */
-                }
-
-                /* Store value in bits 3-23 */
-                second_word |= (value & 0x1FFFFF) << 3;
-                second_word |= (1 << 2); /* Set bit 2 to 1 */
-            }
-            else if (param1[0] == '&')
-            {
-                first_word |= (2 & 0x03) << 11; /* Set bits 11-12 to 2 */
-                first_word |= (0 & 0x07) << 8;  /* Set bits 8-10 to 0 */
-                /* TODO : handle distance between current adress to the label adress and code it into bits 3-23*/
-                second_word |= (1 << 2); /* Set bit 2 to 1 */
-            }
-            else
-            {
-                first_word |= (1 & 0x03) << 11; /* Set bits 11-12 to 1 */
-                first_word |= (0 & 0x07) << 8;  /* Set bits 8-10 to 0 */
-                /* TODO : get the adress and code the word according */
-                second_word = 0;
-                second_word |= 0x03; /* Set bits 0-1 to 1 (0b11) */
-            }
-        }
-        else
-        {
-            int reg_num = atoi(&param1[1]);      /* Extract the number after 'r' */
-            first_word |= (reg_num & 0x07) << 8; /* Set bits 8-10 */
-            first_word |= (3 & 0x03) << 11;      /* Set bits 11-12 to 3 (binary 11) */
-        }
+        process_operand(param1, &first_word, &second_word, 11, 8, &param_flags[0]);
     }
     else if (expected_params == 2)
     {
-        if (!validate_register_operand(param1))
-        {
-            param_flags[0] = 1;
-            if (param1[0] == '#')
-            {
-                first_word |= (0 & 0x03) << 16; /* Set bits 16-17 to 0 */
-                first_word |= (0 & 0x07) << 13; /* Set bits 13-15 to 0 */
-                value = atoi(&param1[1]);       /* Convert number after '#' */
-                /* Convert to two's complement if negative */
-                if (value < 0)
-                {
-                    value = (1 << 21) + value; /* Two's complement for 21-bit signed numbers */
-                }
-
-                /* Store value in bits 3-23 */
-                second_word |= (value & 0x1FFFFF) << 3;
-                second_word |= (1 << 2); /* Set bit 2 to 1 */
-            }
-            else if (param1[0] == '&')
-            {
-                first_word |= (2 & 0x03) << 16; /* Set bits 16-17 to 2 */
-                first_word |= (0 & 0x07) << 13; /* Set bits 13-15 to 0 */
-                /* TODO : handle distance between current adress to the label adress and code it into bits 3-23*/
-                second_word |= (1 << 2); /* Set bit 2 to 1 */
-            }
-            else
-            {
-                first_word |= (1 & 0x03) << 16; /* Set bits 16-17 to 1 */
-                first_word |= (0 & 0x07) << 13; /* Set bits 13-15 to 0 */
-                /* TODO : get the adress and code the word according */
-                second_word = 0;
-                second_word |= 0x03; /* Set bits 0-1 to 1 (0b11) */
-            }
-        }
-        else
-        {
-            int reg_num = atoi(&param1[1]);       /* Extract the number after 'r' */
-            first_word |= (reg_num & 0x07) << 13; /* Set bits 13-15 */
-            first_word |= (3 & 0x03) << 16;       /* Set bits 16-17 to 3 (binary 11) */
-        }
-
-        if (!validate_register_operand(param2))
-        {
-            param_flags[1] = 1;
-            if (param2[0] == '#')
-            {
-                first_word |= (0 & 0x03) << 11; /* Set bits 11-12 to 0 */
-                first_word |= (0 & 0x07) << 8;  /* Set bits 8-10 to 0 */
-                value = atoi(&param2[1]);       /* Convert number after '#' */
-
-                /* Convert to two's complement if negative */
-                if (value < 0)
-                {
-                    value = (1 << 21) + value; /* Two's complement for 21-bit signed numbers */
-                }
-
-                /* Store value in bits 3-23 */
-                third_word |= (value & 0x1FFFFF) << 3;
-                third_word |= (1 << 2); /* Set bit 2 to 1 */
-            }
-            else if (param2[0] == '&')
-            {
-                first_word |= (2 & 0x03) << 11; /* Set bits 11-12 to 2 */
-                first_word |= (0 & 0x07) << 8;  /* Set bits 8-10 to 0 */
-                /* TODO : handle distance between current adress to the label adress and code it into bits 3-23*/
-                third_word |= (1 << 2); /* Set bit 2 to 1 */
-            }
-            else
-            {
-                first_word |= (1 & 0x03) << 11; /* Set bits 11-12 to 2 */
-                first_word |= (0 & 0x07) << 8;  /* Set bits 8-10 to 0 */
-                /* TODO : get the adress and code the word according */
-                third_word = 0;
-                third_word |= 0x03; /* Set bits 0-1 to 1 (0b11) */
-            }
-        }
-        else
-        {
-            int reg_num = atoi(&param2[1]);      /* Extract the number after 'r' */
-            first_word |= (reg_num & 0x07) << 8; /* Set bits 8-10 */
-            first_word |= (3 & 0x03) << 11;      /* Set bits 11-12 to 3 (binary 11) */
-        }
+        process_operand(param1, &first_word, &second_word, 16, 13, &param_flags[0]);
+        process_operand(param2, &first_word, &third_word, 11, 8, &param_flags[1]);
     }
 
     /* Set bit 2 to 1 */
@@ -333,8 +222,6 @@ int generate_binary_command(const char *line, int address, VirtualPC *vpc)
         vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0';
         vpc->IC++;
     }
-    /* printf("address: %d - %s - ", address, command);
-    print_binary(first_word, 24); */
     if (param_flags[0])
     {
         if (vpc->DC + vpc->IC < STORAGE_SIZE)
@@ -344,8 +231,6 @@ int generate_binary_command(const char *line, int address, VirtualPC *vpc)
             vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0';
             vpc->IC++;
         }
-        /* printf("address: %d - %s - ", address + param_flags[0], param1);
-        print_binary(second_word, 24); */
     }
     if (param_flags[1])
     {
@@ -356,11 +241,53 @@ int generate_binary_command(const char *line, int address, VirtualPC *vpc)
             vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0';
             vpc->IC++;
         }
-        /* printf("address: %d - %s - ", address + param_flags[0] + param_flags[1], param2);
-        print_binary(third_word, 24);*/
     }
     free(modifiable_line);
     return 1 + param_flags[0] + param_flags[1];
+}
+
+void process_operand(const char *param, unsigned int *first_word, unsigned int *word, int shift_opcode, int shift_reg, int *param_flag)
+{
+    int value;
+
+    if (!validate_register_operand(param))
+    {
+        *param_flag = 1;
+
+        if (param[0] == '#')
+        {
+            *first_word |= (0 & 0x03) << shift_opcode; /* Immediate addressing */
+            *first_word |= (0 & 0x07) << shift_reg;
+            value = atoi(&param[1]); /* Convert number after '#' */
+
+            if (value < 0)
+            {
+                value = (1 << 21) + value; /* Two's complement for 21-bit signed numbers */
+            }
+
+            *word |= (value & 0x1FFFFF) << 3; /* Store value in bits 3-23 */
+            *word |= (1 << 2);                /* Set bit 2 to 1 */
+        }
+        else if (param[0] == '&')
+        {
+            *first_word |= (2 & 0x03) << shift_opcode; /* Relative addressing */
+            *first_word |= (0 & 0x07) << shift_reg;
+            *word |= (1 << 2); /* Set bit 2 to 1 */
+        }
+        else
+        {
+            *first_word |= (1 & 0x03) << shift_opcode; /* Direct addressing */
+            *first_word |= (0 & 0x07) << shift_reg;
+            *word = 0;
+            *word |= 0x03; /* Set bits 0-1 to 1 (0b11) */
+        }
+    }
+    else
+    {
+        int reg_num = atoi(&param[1]); /* Extract register number */
+        *first_word |= (reg_num & 0x07) << shift_reg;
+        *first_word |= (3 & 0x03) << shift_opcode; /* Register addressing */
+    }
 }
 
 void print_virtual_pc_memory(const VirtualPC *vpc)
@@ -412,7 +339,7 @@ int resolve_and_update_labels(VirtualPC *vpc, const LabelTable *label_table)
     if (vpc == NULL || label_table == NULL)
     {
         is_valid = FALSE;
-        fprintf(stderr, "Error: NULL pointer passed to resolve_and_update_labels.\n");
+        print_error_no_line(ERROR_NULL_POINTER);
         return is_valid;
     }
 
@@ -428,19 +355,11 @@ int resolve_and_update_labels(VirtualPC *vpc, const LabelTable *label_table)
          * If true, the function will calculate the distance from the current address to the label address. */
         if (encoded_str[0] == '&')
         {
-            int label_found = 0;
             for (j = 0; j < label_table->count; j++)
             {
                 if (strcmp(&encoded_str[1], label_table->labels[j].name) == 0)
                 {
-                    label_found = 1;
                     label_address = label_table->labels[j].address;
-                    if (label_address == 0)
-                    {
-                        is_valid = FALSE;
-                        fprintf(stderr, "Error: Label '%s' has address 0.\n", &encoded_str[1]);
-                        break;
-                    }
                     /* Calculate relative address (-1 to reach command address) */
                     value = label_address - (i - 1);
 
@@ -450,11 +369,6 @@ int resolve_and_update_labels(VirtualPC *vpc, const LabelTable *label_table)
 
                     break;
                 }
-            }
-            if (!label_found)
-            {
-                is_valid = FALSE;
-                fprintf(stderr, "Error: No matching label found for '%s'.\n", &encoded_str[1]);
             }
             continue;
         }

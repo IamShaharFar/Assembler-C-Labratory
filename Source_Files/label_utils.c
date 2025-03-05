@@ -19,9 +19,9 @@
  *
  * label: The label string to check.
  *
- * returns: TRUE if the label is valid, FALSE otherwise.
+ * returns: ERROR_SUCCESS if the label is valid, otherwise an appropriate error code.
  */
-int is_valid_label(const char *label)
+ErrorCode is_valid_label(const char *label)
 {
     size_t i;
 
@@ -31,7 +31,7 @@ int is_valid_label(const char *label)
     /* Label must start with an alphabetic character */
     if (label == NULL || !isalpha(label[0]))
     {
-        return FALSE;
+        return ERROR_ILLEGAL_LABEL_START;
     }
 
     /* Ensure all characters are alphanumeric or underscore */
@@ -39,8 +39,14 @@ int is_valid_label(const char *label)
     {
         if (!isalnum(label[i]) && label[i] != '_')
         {
-            return FALSE;
+            return ERROR_ILLEGAL_LABEL_CHAR;
         }
+    }
+
+    /* Check if label is a register name (e.g., r0-r7) */
+    if (validate_register_operand(label) == TRUE)
+    {
+        return ERROR_LABEL_IS_REGISTER;
     }
 
     /* Check if the label is a reserved word */
@@ -48,17 +54,17 @@ int is_valid_label(const char *label)
     {
         if (strcmp(label, reserved_words[i]) == 0)
         {
-            return FALSE;
+            return ERRPR_LABEL_IS_RESERVED_WORD;
         }
     }
 
-    /* Check if label is a register name (e.g., r0-r7) */
-    if (validate_register_operand(label) == TRUE)
+    /* Check if the label length is within the allowed limit */
+    if (strlen(label) > MAX_LABEL_LENGTH)
     {
-        return FALSE;
+        return ERROR_LABEL_TOO_LONG;
     }
 
-    return TRUE;
+    return ERROR_SUCCESS;
 }
 
 /*
@@ -155,6 +161,11 @@ ErrorCode is_valid_entry_label(const char *line, LabelTable *label_table)
     {
         if (strcmp(label_table->labels[i].name, label) == 0)
         {
+            if (label_table->labels[i].address == 0)
+            {
+                return ERROR_LABEL_NOT_DEFINED_IN_FILE; /* Cannot be an entry with a label that is not defined in the file */
+            }
+
             /* Append ", entry" to the label type if not already present */
             if (strstr(label_table->labels[i].type, "entry") == NULL)
             {
@@ -164,9 +175,8 @@ ErrorCode is_valid_entry_label(const char *line, LabelTable *label_table)
         }
     }
 
-    return ERROR_UNDEFINED_LABEL; /* Label not found */
+    return ERROR_UNDEFINED_LABEL; /* Label not found in the loop */
 }
-
 
 /*
  * Function: is_valid_entry_or_extern_line
@@ -215,7 +225,7 @@ int is_valid_entry_or_extern_line(char *line)
     {
         return FALSE;
     }
-    if (!is_valid_label(label))
+    if (is_valid_label(label) != ERROR_SUCCESS)
     {
         return FALSE;
     }
@@ -243,7 +253,7 @@ int is_valid_entry_or_extern_line(char *line)
  *
  * @return ERROR_SUCCESS if the label is added successfully, otherwise returns an appropriate error code.
  */
-ErrorCode add_label(const char *name, int line_number, const char *line, const char *type, int address, LabelTable *label_table, const McroTable *mcro_table)
+ErrorCode add_label(const char *name, int line_number, const char *line, const char *type, VirtualPC *vpc, LabelTable *label_table, const McroTable *mcro_table)
 {
     int i;
 
@@ -280,7 +290,14 @@ ErrorCode add_label(const char *name, int line_number, const char *line, const c
     label_table->labels[label_table->count].type[sizeof(label_table->labels[label_table->count].type) - 1] = '\0';
 
     /* Assign the given address to the label */
-    label_table->labels[label_table->count].address = address;
+    if (strcmp(type, "external") != 0)
+    {
+        label_table->labels[label_table->count].address = vpc->IC + vpc->DC;
+    }
+    else
+    {
+        label_table->labels[label_table->count].address = 0;
+    }
 
     /* Store the full line associated with the label */
     strncpy(label_table->labels[label_table->count].line, line, MAX_LINE_LENGTH - 1);

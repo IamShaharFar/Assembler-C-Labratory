@@ -164,7 +164,7 @@ int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable
     int i, j, is_macro_call, in_macro_def = 0;
     FILE *target_fp;
 
-    /* Create target file name with .am extension in the same directory */
+    /* Create target file name with .am extension */
     strncpy(target_filename, source_filepath, MAX_FILENAME_LENGTH - 1);
     target_filename[MAX_FILENAME_LENGTH - 1] = '\0';
     dot_position = strrchr(target_filename, '.');
@@ -193,7 +193,7 @@ int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable
             continue;  /* Skip empty lines and comment lines */
         }
 
-        /* Check if currently inside a macro definition to skip lines */
+        /* Check if currently inside a macro definition */
         if (in_macro_def) {
             if (strcmp(token, "mcroend") == 0) {
                 in_macro_def = 0;
@@ -217,8 +217,9 @@ int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable
             trim_newline(clean_macro_name);
 
             if (strcmp(token, clean_macro_name) == 0) {
+                /* Expand macro correctly */
                 for (j = 0; j < mcro_table->mcros[i].line_count; j++) {
-                    fprintf(target_fp, "%s", mcro_table->mcros[i].content[j]);
+                    fprintf(target_fp, "%s\n", mcro_table->mcros[i].content[j]);  
                 }
                 is_macro_call = 1;
                 break;
@@ -227,10 +228,18 @@ int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable
 
         /* Only write the line if it's not a macro call */
         if (!is_macro_call) {
+            char *semicolon_pos = strchr(line, ';');
+
+            /* Remove comments */
+            if (semicolon_pos) {
+                *semicolon_pos = '\0';
+                strcat(line, "\n"); /* Add newline character */
+            }
             fprintf(target_fp, "%s", line);
         }
     }
 
+    fflush(target_fp);  
     fclose(target_fp);
     return TRUE;
 }

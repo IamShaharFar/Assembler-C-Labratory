@@ -7,6 +7,7 @@
 #define MAX_FILENAME_LENGTH 30
 
 #define MAX_MCRO_NAME 31
+#define MAX_LABEL_LENGTH 31
 #define MAX_MCROS 50
 #define MAX_MCRO_LINES 100
 

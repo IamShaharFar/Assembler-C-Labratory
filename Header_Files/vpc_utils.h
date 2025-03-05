@@ -23,7 +23,9 @@ int process_data_or_string_directive(char *ptr, VirtualPC *vpc);
 
 void int_to_binary_24(int num, char binary_str[25]);
 
-int generate_binary_command(const char *line, int address, VirtualPC *vpc);
+int generate_binary_command(const char *line, VirtualPC *vpc);
+
+void process_operand(const char *param, unsigned int *first_word, unsigned int *word, int shift_opcode, int shift_reg, int *param_flag);
 
 void print_virtual_pc_memory(const VirtualPC *vpc);
 
