@@ -11,7 +11,8 @@
 /**
  * @brief Initializes the macro table to an empty state.
  *
- * This function sets the count of macros to zero and clears the line count for each macro.
+ * This function initializes the macro table by setting the count to zero and
+ * initializing the line count of each macro entry to zero.
  *
  * @param table Pointer to the macro table to initialize.
  */
@@ -28,25 +29,26 @@ void init_mcro_table(McroTable *table)
 /**
  * @brief Validates if a given name is a legal macro name.
  *
- * The function checks if the provided name conflicts with reserved words.
+ * This function checks if the provided name is a valid macro name by comparing it against
+ * a list of reserved words. It trims any newline characters from the name before validation.
  *
  * @param name The name to validate.
- * @return TRUE if the name is valid, FALSE otherwise.
+ * @return TRUE (1) if the name is valid, FALSE (0) otherwise.
  */
 int is_valid_mcro_name(const char *name)
 {
     size_t i;
-    char clean_name[MAX_MCRO_NAME];
+    char clean_name[MAX_MCRO_NAME]; 
 
-    strncpy(clean_name, name, MAX_MCRO_NAME - 1);
+    strncpy(clean_name, name, MAX_MCRO_NAME - 1); /* Copy the name to a new buffer */
     clean_name[MAX_MCRO_NAME - 1] = '\0';
-    trim_newline(clean_name);
+    trim_newline(clean_name); /* Remove newline characters */
 
     for (i = 0; i < RESERVED_WORDS_COUNT; i++)
     {
         if (strcmp(clean_name, reserved_words[i]) == 0)
         {
-            return FALSE;
+            return FALSE; /* Name is a reserved word */
         }
     }
     return TRUE;
@@ -83,17 +85,20 @@ ErrorCode add_mcro(McroTable *table, const char *name)
         return ERROR_MEMORY_ALLOCATION;
     }
 
-    strncpy(table->mcros[table->count].name, name, MAX_MCRO_NAME  - 1);
-    table->mcros[table->count].name[MAX_MCRO_NAME  - 1] = '\0';
+    /* Add the macro to the table */
+    strncpy(table->mcros[table->count].name, name, MAX_MCRO_NAME - 1);
+    table->mcros[table->count].name[MAX_MCRO_NAME - 1] = '\0';
     table->mcros[table->count].line_count = 0;
     table->count++;
+
     return ERROR_SUCCESS;
 }
 
 /**
  * @brief Adds a line of content to the most recently added macro.
  *
- * This function appends a line to the last defined macro in the table.
+ * This function appends a line to the last defined macro in the table. It ensures that the macro
+ * table is not empty and that the macro does not exceed the maximum allowed lines.
  *
  * @param table Pointer to the macro table.
  * @param line The line to add to the macro.
@@ -103,56 +108,36 @@ ErrorCode add_line_to_mcro(McroTable *table, const char *line)
 {
     Mcro *current_mcro;
 
+    /* Check if there are any macros defined */
     if (table->count == 0)
         return ERROR_MCRO_BEFORE_DEF;
 
-    current_mcro = &table->mcros[table->count - 1];
+    current_mcro = &table->mcros[table->count - 1]; /* Get the last defined macro */
+
     if (current_mcro->line_count >= MAX_MCRO_LINES)
     {
         return ERROR_MEMORY_ALLOCATION;
     }
 
+    /* Add the line to the macro content */
     strncpy(current_mcro->content[current_mcro->line_count], line, MAX_LINE_LENGTH - 1);
     current_mcro->content[current_mcro->line_count][MAX_LINE_LENGTH - 1] = '\0';
     current_mcro->line_count++;
+
     return ERROR_SUCCESS;
 }
 
 /**
- * @brief Prints all macros stored in the macro table.
+ * @brief Processes the content as it would appear in the .am file and writes it to the target file.
  *
- * This function iterates through the macro table and prints the name and content of each macro.
- *
- * @param table Pointer to the macro table to print.
- */
-void print_mcro_table(const McroTable *table)
-{
-    int i, j;
-    printf("\nDeclared macros:\n");
-    for (i = 0; i < table->count; i++)
-    {
-        printf("Macro: %s\n", table->mcros[i].name);
-        printf("Line count: %d\n", table->mcros[i].line_count);
-        printf("----------\n");
-        for (j = 0; j < table->mcros[i].line_count; j++)
-        {
-            printf("%s", table->mcros[i].content[j]);
-        }
-        printf("\n");
-    }
-}
-
-/**
- * @brief Processes the content as it would appear in the .am file and saves it.
- *
- * This function simulates the .am file content by processing the source file. It expands macros
- * when called and removes macro declarations, macro calls, empty lines, and comment lines from the output.
- * The processed content is saved as a .am file with the same name as the source file.
+ * This function reads the source file line by line, expands macros when called, and removes macro
+ * declarations and calls from the output. It creates a new file with the .am extension and writes
+ * the processed content to it.
  *
  * @param source_fp Pointer to the source file.
- * @param source_filepath The full path of the source file to create the corresponding .am file.
+ * @param source_filepath Path to the source file.
  * @param mcro_table Pointer to the macro table containing defined macros.
- * @return TRUE if processing is successful, FALSE otherwise.
+ * @return TRUE (1) if processing is successful, FALSE (0) otherwise.
  */
 int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable *mcro_table)
 {
@@ -160,19 +145,21 @@ int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable
     char temp_line[MAX_LINE_LENGTH];
     char clean_macro_name[MAX_MCRO_NAME];
     char target_filename[MAX_FILENAME_LENGTH];
-    char *token, *dot_position;
+    char *token, *dot_position; /* Dot position for file extension */
     int i, j, is_macro_call, in_macro_def = 0;
     FILE *target_fp;
 
     /* Create target file name with .am extension */
     strncpy(target_filename, source_filepath, MAX_FILENAME_LENGTH - 1);
     target_filename[MAX_FILENAME_LENGTH - 1] = '\0';
-    dot_position = strrchr(target_filename, '.');
+    dot_position = strrchr(target_filename, '.'); /* Find the last dot in the filename */
+
+    /* Check if the file extension is .as */
     if (!dot_position || strcmp(dot_position, ".as") != 0) {
         print_error_no_line(ERROR_MISSING_AS_FILE);
         return FALSE;
     }
-    strcpy(dot_position, ".am");
+    strcpy(dot_position, ".am"); /* Replace the extension with .am */
 
     /* Open target file for writing */
     target_fp = fopen(target_filename, "w");
@@ -181,14 +168,15 @@ int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable
         return FALSE;
     }
 
-    rewind(source_fp);
+    rewind(source_fp); /* Reset the source file pointer */
 
+    /* Process the source file line by line */
     while (fgets(line, MAX_LINE_LENGTH, source_fp))
     {
         strncpy(temp_line, line, MAX_LINE_LENGTH - 1);
         temp_line[MAX_LINE_LENGTH - 1] = '\0';
 
-        token = strtok(temp_line, " \t\n\r");
+        token = strtok(temp_line, " \t\n\r"); /* Get the first token */
         if (!token || token[0] == ';') {
             continue;  /* Skip empty lines and comment lines */
         }
@@ -196,7 +184,7 @@ int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable
         /* Check if currently inside a macro definition */
         if (in_macro_def) {
             if (strcmp(token, "mcroend") == 0) {
-                in_macro_def = 0;
+                in_macro_def = 0; /* End of macro definition */
             }
             continue;
         }
@@ -209,13 +197,15 @@ int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable
 
         /* Check if the line calls a macro */
         is_macro_call = 0;
-        trim_newline(token);
+        trim_newline(token); 
 
+        /* Check if the token is a macro name */
         for (i = 0; i < mcro_table->count; i++) {
             strncpy(clean_macro_name, mcro_table->mcros[i].name, MAX_MCRO_NAME - 1);
             clean_macro_name[MAX_MCRO_NAME - 1] = '\0';
             trim_newline(clean_macro_name);
 
+            /* Check if the token is a macro name */
             if (strcmp(token, clean_macro_name) == 0) {
                 /* Expand macro correctly */
                 for (j = 0; j < mcro_table->mcros[i].line_count; j++) {
@@ -239,6 +229,7 @@ int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable
         }
     }
 
+    /* Close and flush the target file */
     fflush(target_fp);  
     fclose(target_fp);
     return TRUE;

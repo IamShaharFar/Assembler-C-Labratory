@@ -7,19 +7,14 @@
 #include "../Header_Files/structs.h"
 
 /**
- * @brief Advances the pointer to the next non-whitespace character.
+ * @brief Advances the pointer to the next non-whitespace character in the string.
  *
- * This function moves the pointer forward, skipping over any leading 
- * whitespace characters (spaces, tabs, etc.) until it points to the 
- * first non-whitespace character. It does not modify the input string 
- * and is useful for locating the start of the next token in a line.
+ * This function iterates through the given string and advances the pointer past any
+ * whitespace characters (spaces, tabs, newlines, etc.). It stops at the first non-whitespace
+ * character or the end of the string.
  *
- * Example:
- * Input: "   mov r1, r2"
- * Output: Pointer to 'm'
- *
- * @param str The input string to process.
- * @return Pointer to the first non-whitespace character in the string.
+ * @param str Pointer to the input string.
+ * @return Pointer to the first non-whitespace character in the string, or the end of the string if no non-whitespace character is found.
  */
 char* advance_to_next_token(char* str) {
     while (str && *str && isspace((unsigned char)*str)) {
@@ -29,13 +24,14 @@ char* advance_to_next_token(char* str) {
 }
 
 /**
- * @brief Advances the pointer past the current token (non-space sequence).
+ * @brief Advances the pointer past the current token in the string.
  *
- * This function skips over the current token (a sequence of non-space characters)
- * and returns a pointer to the next whitespace or the end of the string.
+ * This function iterates through the given string and advances the pointer past the current
+ * token, which is defined as a sequence of non-whitespace characters. It stops at the first
+ * whitespace character or the end of the string.
  *
- * @param str The string pointer positioned at the start of the token.
- * @return Pointer to the character after the current token.
+ * @param str Pointer to the input string.
+ * @return Pointer to the first whitespace character after the token, or the end of the string if no whitespace character is found.
  */
 char* advance_past_token(char* str) {
     while (str && *str && !isspace((unsigned char)*str)) {
@@ -45,10 +41,14 @@ char* advance_past_token(char* str) {
 }
 
 /**
- * @brief Advances the pointer past the current token until it hits a space, tab, or comma.
+ * @brief Advances the pointer past the current token or comma in the string.
  *
- * @param str The input string starting from the current token.
- * @return Pointer to the first space, tab, or comma after the token.
+ * This function iterates through the given string and advances the pointer past the current
+ * token, which is defined as a sequence of non-whitespace characters and commas. It stops at the first
+ * whitespace character, comma, or the end of the string.
+ *
+ * @param str Pointer to the input string.
+ * @return Pointer to the first whitespace character, comma, or the end of the string if no such character is found.
  */
 char* advance_past_token_or_comma(char* str) {
     while (*str && !isspace((unsigned char)*str) && *str != ',') {
@@ -57,14 +57,24 @@ char* advance_past_token_or_comma(char* str) {
     return str;
 }
 
-
+/**
+ * @brief Validates if the given string is a valid register operand.
+ *
+ * This function checks if the provided string represents a valid register operand.
+ * A valid register operand must be exactly two characters long, start with the character 'r',
+ * and be followed by a digit between '0' and '7'.
+ *
+ * @param str Pointer to the input string.
+ * @return int Returns TRUE if the string is a valid register operand, FALSE otherwise.
+ */
 int validate_register_operand(const char* str)
 {
     if (!str || strlen(str) != 2) 
     {
-        return FALSE; /* Invalid length */
+        return FALSE; 
     }
     
+    /* Check if the string starts with 'r' and the second character is a digit between '0' and '7' */
     if (str[0] == 'r' && isdigit(str[1]) && str[1] >= '0' && str[1] <= '7')
     {
         return TRUE;
@@ -72,36 +82,22 @@ int validate_register_operand(const char* str)
     return FALSE;
 }
 
-int check_line_length_exceeded(const char* line) {
-    return line && strlen(line) > MAX_LINE_LENGTH;
-}
-
-int detect_consecutive_commas(const char* str) {
-    char* current_pos = (char*)str;
-    
-    while (current_pos && *current_pos) {
-        if (*current_pos == ',') {
-            current_pos = advance_to_next_token(current_pos + 1);
-            if (*current_pos == ',') {
-                return TRUE;
-            }
-        }
-        current_pos++;
-    }
-    return FALSE;
-}
-
-int verify_command_end(const char* str) {
-    str = advance_to_next_token((char*)str);
-    return !str || !*str;
-}
-
+/**
+ * @brief Trims trailing newline, carriage return, space, and tab characters from a string.
+ *
+ * This function removes any trailing newline (`\n`), carriage return (`\r`), space (` `), and tab (`\t`)
+ * characters from the end of the given string. It modifies the string in place.
+ *
+ * @param str Pointer to the input string.
+ */
 void trim_newline(char *str) {
     char *end;
 
     if (str == NULL || *str == '\0') return;
 
     end = str + strlen(str) - 1;
+
+    /* Trim trailing newline, carriage return, space, and tab characters */
     while (end > str && (*end == '\n' || *end == '\r' || *end == ' ' || *end == '\t')) {
         *end = '\0';
         end--;
@@ -111,9 +107,10 @@ void trim_newline(char *str) {
 /**
  * @brief Initializes the label table.
  *
- * This function resets the label table, setting the count to zero.
+ * This function initializes the label table by setting its count to zero.
+ * It ensures that the label table is ready to store labels.
  *
- * @param label_table Pointer to the label table to be initialized.
+ * @param label_table Pointer to the LabelTable structure to be initialized.
  */
 void init_label_table(LabelTable *label_table)
 {
@@ -123,6 +120,14 @@ void init_label_table(LabelTable *label_table)
     }
 }
 
+/**
+ * @brief Initializes the virtual PC.
+ *
+ * This function initializes the virtual PC by setting all storage to zero, setting the instruction counter (IC) to 100,
+ * and setting the data counter (DC) to zero. It ensures that the virtual PC is ready to store and execute instructions.
+ *
+ * @param vpc Pointer to the VirtualPC structure to be initialized.
+ */
 void init_virtual_pc(VirtualPC *vpc) {
     memset(vpc->storage, 0, sizeof(vpc->storage));  /* Initialize all storage to 0 */
     vpc->IC = 100;  /* Initialize IC to 100 */

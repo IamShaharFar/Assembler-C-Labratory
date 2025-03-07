@@ -105,8 +105,6 @@ The `Headers` directory contains all the header files for the assembler project.
   - `advance_past_token`: Advances the pointer past the current token.
   - `advance_past_token_or_comma`: Advances the pointer past the current token until it hits a space, tab, or comma.
   - `validate_register_operand`: Validates register operand format.
-  - `check_line_length_exceeded`: Checks if line length exceeds the maximum allowed length.
-  - `detect_consecutive_commas`: Detects multiple commas between tokens.
   - `verify_command_end`: Ensures no extra tokens after command.
   - `trim_newline`: Trims newline characters from a string.
   - `init_label_table`: Initializes the label table.
@@ -115,12 +113,9 @@ The `Headers` directory contains all the header files for the assembler project.
 ### `vpc_utils.h`
 - **Description**: Header file for utility functions related to the virtual PC.
 - **Key Functions**:
-  - `add_word_to_vpc`: Adds a word to the virtual PC at the current PC address.
   - `process_data_or_string_directive`: Processes `.data` or `.string` directive and stores binary words in the virtual PC.
-  - `int_to_binary_24`: Converts an integer to a 24-bit binary string.
-  - `generate_binary_command`: Generates binary code for a command.
+  - `process_and_store_command`: Generates a words for a command line.
   - `process_operand`: Processes an operand and updates the virtual PC.
-  - `print_virtual_pc_memory`: Prints the memory of the virtual PC.
   - `resolve_and_update_labels`: Resolves and updates words in the virtual PC storage with label addresses.
 
 ## Conclusion

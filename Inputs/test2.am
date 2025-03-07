@@ -1,8 +1,2 @@
-MAIN: mov r1, r2
-LOOP: stop  
-      add r3, r4 
-      sub r5, r6 
-      prn r7 
-      jmp MAIN
-      stop 
-LABEL: .data 5
+MAIN: .data 5, 5.5
+add MAIN, r2

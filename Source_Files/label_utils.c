@@ -11,6 +11,7 @@
 #include "../Header_Files/utils.h"
 #include "../Header_Files/errors.h"
 #include "../Header_Files/structs.h"
+#include "../Header_Files/errors.h"
 
 /*
  * Function: is_valid_label
@@ -256,27 +257,26 @@ int is_valid_entry_or_extern_line(char *line)
 ErrorCode add_label(const char *name, int line_number, const char *line, const char *type, VirtualPC *vpc, LabelTable *label_table, const McroTable *mcro_table)
 {
     int i;
+    ErrorCode err = ERROR_SUCCESS;
 
     /* Check if the label table has space for new labels */
     if (label_table->count >= MAX_LABELS)
     {
-        return ERROR_MEMORY_ALLOCATION;
+        err = ERROR_MEMORY_ALLOCATION;
     }
 
     /* Check if the label already exists in the label table */
-    if (label_exists(name, label_table))
+    else if (label_exists(name, label_table))
     {
-        fprintf(stderr, "Error at line %d: Label '%s' is already defined.\n", line_number, name);
-        return ERROR_LABEL_DUPLICATE;
+        err = ERROR_LABEL_DUPLICATE;
     }
-
-    /* Check if the label name conflicts with a macro name */
+    
+    /* Existing code to check for label conflicts with macro names */
     for (i = 0; i < mcro_table->count; i++)
     {
         if (strcmp(name, mcro_table->mcros[i].name) == 0)
         {
-            fprintf(stderr, "Error at line %d: Label '%s' conflicts with a macro name.\n", line_number, name);
-            return ERROR_LABEL_IS_MCRO_NAME;
+            err = ERROR_LABEL_IS_MCRO_NAME;
         }
     }
 
@@ -306,7 +306,7 @@ ErrorCode add_label(const char *name, int line_number, const char *line, const c
     /* Increment label count */
     label_table->count++;
 
-    return ERROR_SUCCESS;
+    return err;
 }
 
 /**

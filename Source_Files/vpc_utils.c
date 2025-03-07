@@ -12,49 +12,24 @@
 #include <stdlib.h>
 #include <string.h>
 
-int add_word_to_vpc(VirtualPC *vpc, Word word)
-{
-    if (vpc->IC >= STORAGE_SIZE)
-    {
-        print_error_no_line(ERROR_MEMORY_ALLOCATION);
-        return 0;
-    }
-
-    vpc->storage[vpc->IC] = word;
-    vpc->IC++;
-    return 1;
-}
-
 /**
- * @brief Converts an integer to a 24-bit binary string.
+ * @brief Processes a .data or .string directive and stores the values in the VirtualPC storage.
  *
- * @param num The integer to convert.
- * @param binary_str A buffer to store the 24-bit binary string.
- */
-void int_to_binary_24(int num, char binary_str[25])
-{
-    int i;
-    for (i = 23; i >= 0; i--)
-    {
-        binary_str[i] = (num & 1) ? '1' : '0';
-        num >>= 1;
-    }
-    binary_str[24] = '\0';
-}
-
-/**
- * @brief Processes .data or .string directive and stores binary words in VirtualPC.
+ * This function processes a directive from the input string pointed to by `ptr`. It can handle
+ * either a .data directive, which contains a list of numbers, or a .string directive, which
+ * contains a string of characters. The function stores the processed values in the VirtualPC
+ * storage, ensuring that only the lower 24 bits of each value are stored.
  *
- * @param ptr Pointer to the .data or .string. line content.
- * @param vpc Pointer to the VirtualPC structure.
- * @return int The count of binary words stored.
+ * @param ptr Pointer to the input string containing the directive.
+ * @param vpc Pointer to the VirtualPC structure where the values will be stored.
+ * @return The count of processed items (numbers or characters).
  */
 int process_data_or_string_directive(char *ptr, VirtualPC *vpc)
 {
     int count = 0; /* Count of the line dc */
     ptr = advance_to_next_token(ptr);
 
-    if (strncmp(ptr, ".data", 5) == 0)
+    if (strncmp(ptr, ".data", 5) == 0) /* Check if the directive is .data */
     {
         ptr += 5;
         ptr = advance_to_next_token(ptr);
@@ -71,7 +46,7 @@ int process_data_or_string_directive(char *ptr, VirtualPC *vpc)
 
             if (vpc->DC + vpc->IC < STORAGE_SIZE)
             {
-                vpc->storage[vpc->DC + vpc->IC].value = num & 0xFFFFFF;                                              /* Store the number in bits 0-23 */
+                vpc->storage[vpc->DC + vpc->IC].value = num & 0xFFFFFF;                                              /* Store only the lower 24 bits of 'num' */
                 sprintf(vpc->storage[vpc->DC + vpc->IC].encoded, "%d", num);                                         /* Store the number as a string */
                 vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0'; /* Ensure null-termination */
                 vpc->DC++;
@@ -87,7 +62,7 @@ int process_data_or_string_directive(char *ptr, VirtualPC *vpc)
             }
         }
     }
-    else if (strncmp(ptr, ".string", 7) == 0)
+    else if (strncmp(ptr, ".string", 7) == 0) /* Check if the directive is .string */
     {
         ptr += 7;
         ptr = advance_to_next_token(ptr);
@@ -102,7 +77,7 @@ int process_data_or_string_directive(char *ptr, VirtualPC *vpc)
             {
                 if (vpc->DC + vpc->IC < STORAGE_SIZE)
                 {
-                    vpc->storage[vpc->DC + vpc->IC].value = (int)(*ptr) & 0xFFFFFF; /* Store the character in bits 0-23 */
+                    vpc->storage[vpc->DC + vpc->IC].value = (int)(*ptr) & 0xFFFFFF; /* Store only the lower 24 bits of the character */
                     sprintf(vpc->storage[vpc->DC + vpc->IC].encoded, "%c", *ptr);   /* Store the character as a string */
                     vpc->DC++;
                 }
@@ -124,14 +99,17 @@ int process_data_or_string_directive(char *ptr, VirtualPC *vpc)
 }
 
 /**
- * Generates a binary command from the given assembly line and stores it in the VirtualPC structure.
+ * @brief Generates words from a command from a valid line of command and stores it in the VirtualPC storage.
  *
- * @param line The assembly line to be converted into a binary command.
- * @param vpc A pointer to the VirtualPC structure where the binary command will be stored.
- * @return An integer indicating the success or failure of the operation.
+ * This function processes a valid line of command from the input string `line`. It extracts the command
+ * and its parameters, determines the opcode and function code, and generates the corresponding binary
+ * representation. The command and its parameters are then stored in the VirtualPC storage.
+ *
+ * @param line Pointer to the input string containing the command line.
+ * @param vpc Pointer to the VirtualPC structure where the binary command will be stored.
+ * @return The count of stored items (1 for the command itself, plus any additional parameters).
  */
-
-int generate_binary_command(const char *line, VirtualPC *vpc)
+int process_and_store_command(const char *line, VirtualPC *vpc)
 {
     char command[MAX_LINE_LENGTH];
     char param1[MAX_LINE_LENGTH] = "";
@@ -142,7 +120,7 @@ int generate_binary_command(const char *line, VirtualPC *vpc)
     unsigned int first_word = 0;
     unsigned int second_word = 0;
     unsigned int third_word = 0;
-    int param_flags[2] = {0, 0};
+    int param_flags[2] = {0, 0}; /* Flags to indicate if a parameter generates a word */
     int opcode = -1, funct = -1;
 
     /* Make a modifiable copy of the input line */
@@ -174,10 +152,10 @@ int generate_binary_command(const char *line, VirtualPC *vpc)
         ptr = advance_past_token_or_comma(ptr);
         ptr = advance_to_next_token(ptr);
         ptr++;
-        sscanf(ptr, "%s", param2);
+        sscanf(ptr, "%s", param2); /* Read param2 */
     }
 
-    /* Find the command opcode */
+    /* Find the command opcode and funct */
     for (i = 0; i < RESERVED_COMMANDS_COUNT; i++)
     {
         if (strcmp(commands_info[i].name, command) == 0)
@@ -188,6 +166,7 @@ int generate_binary_command(const char *line, VirtualPC *vpc)
         }
     }
 
+    /* Check if the command is valid */
     if (opcode == -1)
     {
         print_error_no_line(ERROR_UNKNOWN_COMMAND);
@@ -195,6 +174,7 @@ int generate_binary_command(const char *line, VirtualPC *vpc)
         return 0;
     }
 
+    /* Process parameters and add a word to vpc if needed */
     if (expected_params == 1)
     {
         process_operand(param1, &first_word, &second_word, 11, 8, &param_flags[0]);
@@ -209,16 +189,20 @@ int generate_binary_command(const char *line, VirtualPC *vpc)
     first_word |= (1 << 2);
 
     /* Set bits 18-23 for opcode */
-    first_word |= (opcode & 0x3F) << 18; /* Opcode is 6 bits */
+    first_word |= (opcode & 0x3F) << 18; /* Opcode is 6 bits, mask with 0x3F (binary 111111) and shift left by 18 bits */
 
+    /* Set bits 3-7 for funct */
     if (funct != -1)
     {
-        first_word |= (funct & 0x1F) << 3; /* Funct is 5 bits */
+        /* Set bits 3-7 for funct */
+        first_word |= (funct & 0x1F) << 3; /* Funct is 5 bits, mask with 0x1F (binary 11111) and shift left by 3 bits */
     }
+
+    /* Store the words in the VirtualPC storage */
     if (vpc->DC + vpc->IC < STORAGE_SIZE)
     {
         vpc->storage[vpc->DC + vpc->IC].value = first_word;
-        strncpy(vpc->storage[vpc->DC + vpc->IC].encoded, command, sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1);
+        strncpy(vpc->storage[vpc->DC + vpc->IC].encoded, command, sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1); /* Store the command name that gave a word*/
         vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0';
         vpc->IC++;
     }
@@ -227,7 +211,7 @@ int generate_binary_command(const char *line, VirtualPC *vpc)
         if (vpc->DC + vpc->IC < STORAGE_SIZE)
         {
             vpc->storage[vpc->DC + vpc->IC].value = second_word;
-            strncpy(vpc->storage[vpc->DC + vpc->IC].encoded, param1, sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1);
+            strncpy(vpc->storage[vpc->DC + vpc->IC].encoded, param1, sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1); /* Store the first parameter that gave a word */
             vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0';
             vpc->IC++;
         }
@@ -237,15 +221,30 @@ int generate_binary_command(const char *line, VirtualPC *vpc)
         if (vpc->DC + vpc->IC < STORAGE_SIZE)
         {
             vpc->storage[vpc->DC + vpc->IC].value = third_word;
-            strncpy(vpc->storage[vpc->DC + vpc->IC].encoded, param2, sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1);
+            strncpy(vpc->storage[vpc->DC + vpc->IC].encoded, param2, sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1); /* Store the second parameter that gave a word */
             vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0';
             vpc->IC++;
         }
     }
-    free(modifiable_line);
-    return 1 + param_flags[0] + param_flags[1];
+
+    free(modifiable_line); 
+    return 1 + param_flags[0] + param_flags[1]; /* Return the count of stored words */
 }
 
+/**
+ * @brief Processes an operand and updates the binary representation in the provided words.
+ *
+ * This function processes an operand from the input string `param`. It determines the addressing mode
+ * (immediate, relative, direct, or register), updates the `first_word` and `word` with the appropriate
+ * binary representation, and sets the `param_flag` if the operand is valid.
+ *
+ * @param param Pointer to the input string containing the operand.
+ * @param first_word Pointer to the first word of the binary representation to be updated.
+ * @param word Pointer to the word where the operand value will be stored.
+ * @param shift_opcode Number of bits to shift the opcode for the addressing mode.
+ * @param shift_reg Number of bits to shift the register number.
+ * @param param_flag Pointer to the flag indicating if the operand is valid.
+ */
 void process_operand(const char *param, unsigned int *first_word, unsigned int *word, int shift_opcode, int shift_reg, int *param_flag)
 {
     int value;
@@ -256,8 +255,8 @@ void process_operand(const char *param, unsigned int *first_word, unsigned int *
 
         if (param[0] == '#')
         {
-            *first_word |= (0 & 0x03) << shift_opcode; /* Immediate addressing */
-            *first_word |= (0 & 0x07) << shift_reg;
+            *first_word |= (0 & 0x03) << shift_opcode; /* Immediate addressing - 0 */
+            *first_word |= (0 & 0x07) << shift_reg;  /* No register */
             value = atoi(&param[1]); /* Convert number after '#' */
 
             if (value < 0)
@@ -265,52 +264,29 @@ void process_operand(const char *param, unsigned int *first_word, unsigned int *
                 value = (1 << 21) + value; /* Two's complement for 21-bit signed numbers */
             }
 
-            *word |= (value & 0x1FFFFF) << 3; /* Store value in bits 3-23 */
+            *word |= (value & 0x1FFFFF) << 3; /* Mask the value to 21 bits (0x1FFFFF, which is 21 bits set to 1) and store it in bits 3-23 of the word */
             *word |= (1 << 2);                /* Set bit 2 to 1 */
         }
         else if (param[0] == '&')
         {
-            *first_word |= (2 & 0x03) << shift_opcode; /* Relative addressing */
-            *first_word |= (0 & 0x07) << shift_reg;
+            *first_word |= (2 & 0x03) << shift_opcode; /* Relative addressing - 2*/
+            *first_word |= (0 & 0x07) << shift_reg;  /* No register */
             *word |= (1 << 2); /* Set bit 2 to 1 */
         }
         else
         {
-            *first_word |= (1 & 0x03) << shift_opcode; /* Direct addressing */
-            *first_word |= (0 & 0x07) << shift_reg;
-            *word = 0;
-            *word |= 0x03; /* Set bits 0-1 to 1 (0b11) */
+            *first_word |= (1 & 0x03) << shift_opcode; /* Direct addressing - 1 */
+            *first_word |= (0 & 0x07) << shift_reg; /* No register */
+            *word = 0; /* Clear the word */
+            *word |= 0x03; /* Set bits 0-1 to 1 (11 in binary) in the second pass we will update the address and the R/E*/
         }
     }
     else
     {
         int reg_num = atoi(&param[1]); /* Extract register number */
-        *first_word |= (reg_num & 0x07) << shift_reg;
-        *first_word |= (3 & 0x03) << shift_opcode; /* Register addressing */
+        *first_word |= (reg_num & 0x07) << shift_reg; /* Set the register bits with the register number */
+        *first_word |= (3 & 0x03) << shift_opcode; /* Register addressing - 3 */
     }
-}
-
-void print_virtual_pc_memory(const VirtualPC *vpc)
-{
-    char binary_str[25];
-    int address;
-
-    printf("Virtual PC Memory Dump:\n");
-    printf("IC: %d - DC: %d\n", vpc->IC - 100, vpc->DC);
-    printf("---------------------------------------------------------------\n");
-    printf("| Address  | Binary Value           | Encoded String           |\n");
-    printf("---------------------------------------------------------------\n");
-
-    for (address = 100; address < (vpc->DC + vpc->IC); address++)
-    {
-        int value = vpc->storage[address].value;
-        int_to_binary_24(value, binary_str);
-
-        printf("| %-8d | %-24s | %-24s |\n",
-               address, binary_str, vpc->storage[address].encoded);
-    }
-
-    printf("---------------------------------------------------------------\n");
 }
 
 /**

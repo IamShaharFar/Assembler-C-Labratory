@@ -4,30 +4,36 @@
 
 #include "structs.h"
 
-/**
- * @brief Adds a word to the virtual PC at the current PC address.
- *
- * @param vpc Pointer to the VirtualPC structure.
- * @param word The Word to add.
- * @return int Returns 1 if successful, 0 if storage is full.
- */
-int add_word_to_vpc(VirtualPC *vpc, Word word);
 
 /**
- * @brief Processes .data or .string directive and stores binary words in VirtualPC.
+ * @brief Processes a .data or .string directive and stores the values in the VirtualPC storage.
  *
- * @param ptr Pointer to the content after .data or .string.
- * @return int The count of binary words stored.
+ * This function processes a directive from the input string pointed to by `ptr`. It can handle
+ * either a .data directive, which contains a list of numbers, or a .string directive, which 
+ * contains a string of characters. The function stores the processed values in the VirtualPC 
+ * storage, ensuring that only the lower 24 bits of each value are stored.
+ *
+ * @param ptr Pointer to the input string containing the directive.
+ * @param vpc Pointer to the VirtualPC structure where the values will be stored.
+ * @return The count of processed items (numbers or characters).
  */
 int process_data_or_string_directive(char *ptr, VirtualPC *vpc);
 
-void int_to_binary_24(int num, char binary_str[25]);
-
-int generate_binary_command(const char *line, VirtualPC *vpc);
+/**
+ * @brief Generates words from a command from a valid line of command and stores it in the VirtualPC storage.
+ *
+ * This function processes a valid line of command from the input string `line`. It extracts the command
+ * and its parameters, determines the opcode and function code, and generates the corresponding binary
+ * representation. The command and its parameters are then stored in the VirtualPC storage.
+ *
+ * @param line Pointer to the input string containing the command line.
+ * @param vpc Pointer to the VirtualPC structure where the binary command will be stored.
+ * @return The count of stored items (1 for the command itself, plus any additional parameters).
+ */
+int process_and_store_command(const char *line, VirtualPC *vpc);
 
 void process_operand(const char *param, unsigned int *first_word, unsigned int *word, int shift_opcode, int shift_reg, int *param_flag);
 
-void print_virtual_pc_memory(const VirtualPC *vpc);
 
 /**
  * @brief Resolves and updates words in VirtualPC storage with label addresses.

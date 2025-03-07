@@ -107,11 +107,17 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
                 if (err == ERROR_INVALID_STORAGE_DIRECTIVE)
                 {
                 }
-                else if (err == ERROR_SUCCESS)
+                else
                 {
+                    if (err != ERROR_SUCCESS)
+                    {
+                        is_valid_file = FALSE;
+                        print_error(err, line_number);
+                    }
                     err = add_label(label, line_number, content, "data", vpc, label_table, mcro_table);
                     if (err != ERROR_SUCCESS)
                     {
+                        printf("Error adding label %s at line %d.\n", label, line_number);
                         is_valid_file = FALSE;
                         print_error(err, line_number);
                         continue;
@@ -119,16 +125,15 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
                     process_data_or_string_directive(content, vpc);
                     continue;
                 }
-                else
-                {
-                    is_valid_file = FALSE;
-                    print_error(err, line_number);
-                    continue;
-                }
 
                 err = is_valid_command(content);
-                if (err == ERROR_SUCCESS)
+                if (err != ERROR_UNKNOWN_COMMAND)
                 {
+                    if (err != ERROR_SUCCESS)
+                    {
+                        is_valid_file = FALSE;
+                        print_error(err, line_number);
+                    }
                     err = add_label(label, line_number, content, "code", vpc, label_table, mcro_table);
                     if (err != ERROR_SUCCESS)
                     {
@@ -136,7 +141,7 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
                         print_error(err, line_number);
                         continue;
                     }
-                    generate_binary_command(content, vpc);
+                    process_and_store_command(content, vpc);
                     continue;
                 }
                 is_valid_file = FALSE;
@@ -206,7 +211,7 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
         err = is_valid_command(line);
         if (err == ERROR_SUCCESS)
         {
-            generate_binary_command(line, vpc);
+            process_and_store_command(line, vpc);
             continue;
         }
         else
