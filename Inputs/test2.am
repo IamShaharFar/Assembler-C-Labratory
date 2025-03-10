@@ -1,2 +1,1 @@
-MAIN: .data 5, 5.5
-add MAIN, r2
+ MAIN: .data -1

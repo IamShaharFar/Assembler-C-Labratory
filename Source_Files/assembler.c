@@ -55,7 +55,6 @@ int main(int argc, char *argv[]) {
                 if (!second_pass(am_file, &label_table, vpc)){
                     success = FALSE;
                 }
-                /* print_labels(&label_table); */ /* Print labels after second pass */ 
                 fclose(am_file);
             }
         }

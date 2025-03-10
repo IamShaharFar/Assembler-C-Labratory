@@ -22,11 +22,4 @@
  */
 int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTable *mcro_table);
 
-/**
- * @brief Prints all labels stored in the label table.
- */
-/* void print_label_table(); */
-
-void print_labels(const LabelTable *label_table);
-
 #endif /* FIRST_PASS_H */

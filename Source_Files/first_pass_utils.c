@@ -51,12 +51,45 @@
          while (*line)
          {
              char *endptr;
+             const char *start = line;
+             int dot_count = 0;
+             const char *ptr = start;
              strtol(line, &endptr, 10); /* Convert number */
              if (endptr == line)
              {
                  return ERROR_INVALID_DATA_NON_NUMERIC;
              }
- 
+             while (*line && *line != ',')
+             {
+                 line++;
+             }
+
+             if (*ptr == '+' || *ptr == '-')
+             {
+                 ptr++;
+             }
+
+             while (*ptr)
+             {
+                 if (*ptr == '.')
+                 {
+                     dot_count++;
+                     if (dot_count > 1)
+                     {
+                         return ERROR_INVALID_DATA_UNEXPECTED_CHAR;
+                     }
+                 }
+                 else if (!isdigit((unsigned char)*ptr))
+                 {
+                     break;
+                 }
+                 ptr++;
+             }
+
+             if (dot_count == 1 && ptr != start && *(ptr - 1) != '.')
+             {
+                 return ERROR_INVALID_DATA_REAL_NUMBER;
+             }
              line = endptr;
              while (isspace((unsigned char)*line))
                  line++;
@@ -74,7 +107,7 @@
              }
              else if (*line != '\0')
              {
-                 return ERROR_INVALID_DATA_UNEXPECTED_CHAR;
+                return ERROR_INVALID_DATA_MISSING_COMMA;
              }
          }
          return ERROR_SUCCESS;

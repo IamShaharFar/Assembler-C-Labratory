@@ -31,11 +31,11 @@
 int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTable *mcro_table)
 {
     char line[MAX_LINE_LENGTH];
-    char original_line[MAX_LINE_LENGTH];
+    char original_line[MAX_LINE_LENGTH]; /* Copy of the original line */
     char label[MAX_LINE_LENGTH];
     char content[MAX_LINE_LENGTH];
     char *colon_pos;
-    char *content_after_label;
+    char *content_after_label; /* Pointer to the content after the label (if no label, points to the start of the line) */
     char *ptr;
     int line_number = 0;
     int is_valid_file = TRUE;
@@ -44,54 +44,45 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
 
     /* Validate all input pointers */
     if (!fp) {
-        printf("Error: first_pass received a NULL file pointer.\n");
+        print_error_no_line(ERROR_NULL_POINTER);
         return FALSE;
     }
     if (!vpc) {
-        printf("Error: first_pass received a NULL VirtualPC pointer.\n");
+        print_error_no_line(ERROR_NULL_POINTER);
         return FALSE;
     }
     if (!label_table) {
-        printf("Error: first_pass received a NULL LabelTable pointer.\n");
+        print_error_no_line(ERROR_NULL_POINTER);
         return FALSE;
     }
     if (!mcro_table) {
-        printf("Error: first_pass received a NULL McroTable pointer.\n");
+        print_error_no_line(ERROR_NULL_POINTER);
         return FALSE;
     }
 
     rewind(fp);
 
+    /* Process the source file line by line */
     while (fgets(line, MAX_LINE_LENGTH, fp))
     {
-        if (line[0] == '\0') {
-            printf("Error: Empty line encountered at line %d.\n", line_number);
-            continue;
-        }
-
         line_number++;
         strncpy(original_line, line, MAX_LINE_LENGTH - 1);
-        original_line[MAX_LINE_LENGTH - 1] = '\0';
-        ptr = advance_to_next_token(line);
-        if (!ptr) {
-            printf("Error: advance_to_next_token() returned NULL at line %d.\n", line_number);
-            continue;
-        }
+        original_line[MAX_LINE_LENGTH - 1] = '\0'; /* Ensure null-termination */
+        ptr = advance_to_next_token(line); /* Skip leading spaces */
+
         colon_pos = strchr(line, ':');
+
+        /* Check if the line is a label definition */
         if (colon_pos)
         {
-            label_length = colon_pos - line;
+            label_length = colon_pos - line; 
             strncpy(label, line, label_length);
-            label[label_length] = '\0';
+            label[label_length] = '\0'; /* Null-terminate the label */
 
             content_after_label = colon_pos + 1;
-            if (!content_after_label) {
-                printf("Error: content_after_label is NULL at line %d.\n", line_number);
-                continue;
-            }
 
-            while (*content_after_label && isspace((unsigned char)*content_after_label))
-                content_after_label++;
+            /* Skip spaces after the colon */
+            content_after_label = advance_to_next_token(content_after_label);
 
             if (content_after_label) {
                 strncpy(content, content_after_label, MAX_LINE_LENGTH - 1);
@@ -117,7 +108,6 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
                     err = add_label(label, line_number, content, "data", vpc, label_table, mcro_table);
                     if (err != ERROR_SUCCESS)
                     {
-                        printf("Error adding label %s at line %d.\n", label, line_number);
                         is_valid_file = FALSE;
                         print_error(err, line_number);
                         continue;
@@ -168,19 +158,8 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
             else if (err == ERROR_SUCCESS)
             {
                 ptr = advance_to_next_token(line);
-                if (!ptr) {
-                    printf("Error: advance_to_next_token() returned NULL at line %d.\n", line_number);
-                    is_valid_file = FALSE;
-                    continue;
-                }
-
                 ptr += 7;
                 ptr = advance_to_next_token(ptr);
-                if (!ptr) {
-                    printf("Error: Pointer is NULL before scanning label at line %d.\n", line_number);
-                    is_valid_file = FALSE;
-                    continue;
-                }
 
                 sscanf(ptr, "%s", label);
                 err = add_label(label, line_number, "", "external", vpc, label_table, mcro_table);
@@ -221,27 +200,4 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
         }
     }
     return is_valid_file;
-}
-
-/**
- * @brief Prints all labels in the label table.
- * @param label_table Pointer to the LabelTable to print.
- */
-void print_labels(const LabelTable *label_table)
-{
-    int i;
-    printf("Labels:\n");
-    printf("------------------------------------\n");
-    printf("| %-20s | %-6s | %-6s |\n", "Name", "Address", "Type");
-    printf("------------------------------------\n");
-
-    for (i = 0; i < label_table->count; i++)
-    {
-        printf("| %-20s | %-6u | %-6s |\n",
-               label_table->labels[i].name,
-               label_table->labels[i].address,
-               label_table->labels[i].type);
-    }
-
-    printf("------------------------------------\n");
 }

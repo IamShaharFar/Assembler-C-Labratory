@@ -4,6 +4,7 @@
         "type_traits": "c",
         "utils.h": "c",
         "globals.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "structs.h": "c"
     }
 }

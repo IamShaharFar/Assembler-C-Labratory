@@ -54,7 +54,7 @@ const Error errors[] = {
     {ERROR_INVALID_RELATIVE_OR_DIRECT_OPERAND, "ERROR_INVALID_RELATIVE_OR_DIRECT_OPERAND", "Invalid operand. Expected Relative Addressing or Direct Addressing."},
     {ERROR_INVALID_IMMEDIATE_OPERAND, "ERROR_INVALID_IMMEDIATE_OPERAND", "Invalid numeric value. Expected Immediate Address."},
     {ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_OPERAND, "ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_OPERAND", "Invalid operand. Expected Immediate Address, Direct Addressing, or Register Address Direct."},
-
+    {ERROR_INVALID_DATA_REAL_NUMBER, "ERROR_INVALID_DATA_REAL_NUMBER", "Invalid numeric value. Expected an integer."},
     {ERROR_NOT_EXTERN_LINE, "ERROR_NOT_EXTERN_LINE", "Line is not a valid .extern directive."},
 
     /* Data storage errors */
@@ -66,6 +66,7 @@ const Error errors[] = {
     {ERROR_INVALID_STRING_MISSING_END_QUOTE, "ERROR_INVALID_STRING_MISSING_END_QUOTE", "Invalid .string directive: Missing closing double quote."},
     {ERROR_INVALID_STRING_EXTRA_CHARS, "ERROR_INVALID_STRING_EXTRA_CHARS", "Invalid .string directive: Unexpected characters after closing quote."},
     {ERROR_INVALID_STORAGE_DIRECTIVE, "ERROR_INVALID_STORAGE_DIRECTIVE", "Invalid storage instruction. Expected .data or .string directive."},
+    {ERROR_INVALID_DATA_MISSING_COMMA, "ERROR_INVALID_DATA_MISSING_COMMA", "Invalid .data directive: Missing comma between numbers."},
     {ERROR_INVALID_LABEL_CONTENT, "ERROR_INVALID_LABEL_CONTENT", "Label content must be a valid .data/.string directive or a valid command."},
 
 };

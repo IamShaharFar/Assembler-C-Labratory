@@ -3,6 +3,14 @@
 
 #include <stdint.h>
 
+/* Define CommandInfo struct */
+typedef struct {
+    const char *name;
+    int opcode;
+    int funct;
+} CommandInfo;
+
+#include "../Header_Files/globals.h"
 
 /* Constants */
 #define STORAGE_SIZE (1 << 21)  /* 2^21 slots */
@@ -11,7 +19,7 @@
 /* Data structure for a single word */
 typedef struct {
     int32_t value : WORD_SIZE;  /* 24-bit signed integer (2's complement) */
-    char encoded[31]; 
+    char encoded[100]; 
 } Word;
 
 /* Data structure for the virtual PC */
@@ -21,20 +29,13 @@ typedef struct {
     uint32_t DC;       /* Counter for data storage */
 } VirtualPC;
 
-/* Define CommandInfo struct */
-typedef struct {
-    const char *name;
-    int opcode;
-    int funct;
-} CommandInfo;
-
 /**
  * @struct Mcro
  * @brief Represents a macro with its name and content lines.
  */
 typedef struct {
-    char name[31];
-    char content[100][81];
+    char name[MAX_MCRO_NAME];
+    char content[100][MAX_LINE_LENGTH];
     int line_count;
 } Mcro;
 
@@ -52,9 +53,9 @@ typedef struct {
  * @brief Represents a label with its name, line number, and the full line content.
  */
 typedef struct {
-    char name[81];
+    char name[MAX_LABEL_LENGTH];
     int line_number;
-    char line[81];
+    char line[MAX_LINE_LENGTH];
     unsigned int address; /* Address should start from 100 */
     char type[81]; /* Data or Code */
 } Label;

@@ -36,7 +36,6 @@ The `Headers` directory contains all the header files for the assembler project.
 - **Description**: Header file for the first pass of the assembler.
 - **Key Functions**:
   - `first_pass`: Processes the assembly file for the first pass to identify labels.
-  - `print_labels`: Prints all labels stored in the label table.
 
 ### `globals.h`
 - **Description**: Header file for global constants and variables used throughout the assembler.
