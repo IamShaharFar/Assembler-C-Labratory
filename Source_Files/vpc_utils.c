@@ -22,9 +22,10 @@
  *
  * @param ptr Pointer to the input string containing the directive.
  * @param vpc Pointer to the VirtualPC structure where the values will be stored.
+ * @param storage_full Pointer to an integer flag that will be set to if the storage is full.
  * @return The count of processed items (numbers or characters).
  */
-int process_data_or_string_directive(char *ptr, VirtualPC *vpc)
+int process_data_or_string_directive(char *ptr, VirtualPC *vpc, int *storage_full)
 {
     int count = 0; /* Count of the line dc */
     ptr = advance_to_next_token(ptr);
@@ -50,6 +51,10 @@ int process_data_or_string_directive(char *ptr, VirtualPC *vpc)
                 sprintf(vpc->storage[vpc->DC + vpc->IC].encoded, "%d", num);                                         /* Store the number as a string */
                 vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0'; /* Ensure null-termination */
                 vpc->DC++;
+            }
+            else
+            {
+                *storage_full = TRUE;
             }
 
             count++;
@@ -81,6 +86,10 @@ int process_data_or_string_directive(char *ptr, VirtualPC *vpc)
                     sprintf(vpc->storage[vpc->DC + vpc->IC].encoded, "%c", *ptr);   /* Store the character as a string */
                     vpc->DC++;
                 }
+                else
+                {
+                    *storage_full = TRUE;
+                }
 
                 count++;
                 ptr++;
@@ -90,6 +99,10 @@ int process_data_or_string_directive(char *ptr, VirtualPC *vpc)
             {
                 vpc->storage[vpc->DC + vpc->IC].value = 0; /* Store null-terminator */
                 vpc->DC++;
+            }
+            else
+            {
+                *storage_full = TRUE;
             }
 
             count++;
@@ -107,9 +120,10 @@ int process_data_or_string_directive(char *ptr, VirtualPC *vpc)
  *
  * @param line Pointer to the input string containing the command line.
  * @param vpc Pointer to the VirtualPC structure where the binary command will be stored.
+ * @param storage_full Pointer to an integer flag that will be set to if the storage is full.
  * @return The count of stored items (1 for the command itself, plus any additional parameters).
  */
-int process_and_store_command(const char *line, VirtualPC *vpc)
+int process_and_store_command(const char *line, VirtualPC *vpc, int *storage_full)
 {
     char command[MAX_LINE_LENGTH];
     char param1[MAX_LINE_LENGTH] = "";
@@ -206,6 +220,11 @@ int process_and_store_command(const char *line, VirtualPC *vpc)
         vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0';
         vpc->IC++;
     }
+    else
+    {
+        *storage_full = TRUE;
+    }
+
     if (param_flags[0])
     {
         if (vpc->DC + vpc->IC < STORAGE_SIZE)
@@ -214,6 +233,10 @@ int process_and_store_command(const char *line, VirtualPC *vpc)
             strncpy(vpc->storage[vpc->DC + vpc->IC].encoded, param1, sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1); /* Store the first parameter that gave a word */
             vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0';
             vpc->IC++;
+        }
+        else
+        {
+            *storage_full = TRUE;
         }
     }
     if (param_flags[1])
@@ -224,6 +247,10 @@ int process_and_store_command(const char *line, VirtualPC *vpc)
             strncpy(vpc->storage[vpc->DC + vpc->IC].encoded, param2, sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1); /* Store the second parameter that gave a word */
             vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0';
             vpc->IC++;
+        }
+        else
+        {
+            *storage_full = TRUE;
         }
     }
 
@@ -289,93 +316,3 @@ void process_operand(const char *param, unsigned int *first_word, unsigned int *
     }
 }
 
-/**
- * @brief Resolves and updates words in VirtualPC storage with label addresses.
- *
- * This function scans the VirtualPC storage from address 100 to (IC + DC),
- * checking if a word's `encoded` field starts with '&' (indicating relative addressing)
- * or contains a label from the label table. It then updates the word's value with the
- * appropriate address or relative offset.
- *
- * @param vpc Pointer to the VirtualPC structure.
- * @param label_table Pointer to the LabelTable structure.
- */
-int resolve_and_update_labels(VirtualPC *vpc, const LabelTable *label_table)
-{
-    /* Initialize start and end addresses for scanning the VirtualPC storage */
-    uint32_t start_addr = 100;
-    uint32_t end_addr = vpc->IC + vpc->DC;
-
-    /* Loop variables and temporary storage for label address and value */
-    int i, j;
-    int label_address = 0;
-    int value = 0;
-    int is_valid = TRUE;
-
-    if (vpc == NULL || label_table == NULL)
-    {
-        is_valid = FALSE;
-        print_error_no_line(ERROR_NULL_POINTER);
-        return is_valid;
-    }
-
-    /* Loop through VirtualPC storage to resolve and update label addresses */
-    for (i = start_addr; i < end_addr; i++)
-    {
-        char *encoded_str = vpc->storage[i].encoded;
-        int32_t word_value = vpc->storage[i].value;
-        label_address = 0;
-        value = 0;
-
-        /* Check if the given encoded string indicates a label passed by Relative addressing.
-         * If true, the function will calculate the distance from the current address to the label address. */
-        if (encoded_str[0] == '&')
-        {
-            for (j = 0; j < label_table->count; j++)
-            {
-                if (strcmp(&encoded_str[1], label_table->labels[j].name) == 0)
-                {
-                    label_address = label_table->labels[j].address;
-                    /* Calculate relative address (-1 to reach command address) */
-                    value = label_address - (i - 1);
-
-                    word_value &= ~(0x1FFFFF << 3);        /* Clear bits 3-23 */
-                    word_value |= (value & 0x1FFFFF) << 3; /* Set bits 3-23 with the value*/
-                    vpc->storage[i].value = word_value;
-
-                    break;
-                }
-            }
-            continue;
-        }
-
-        for (j = 0; j < label_table->count; j++)
-        {
-            /* check if the encoded string is a label */
-            if (strcmp(encoded_str, label_table->labels[j].name) == 0)
-            {
-                label_address = label_table->labels[j].address;
-                value = label_address;
-
-                vpc->storage[i].value = 0;                        /* Clear the value */
-                vpc->storage[i].value |= (value & 0x1FFFFF) << 3; /* Set bits 3-23 with the value*/
-                vpc->storage[i].value &= ~(1 << 2);               /* Set bit 2 to 0 */
-
-                /* Set the E/R bits based on the label type */
-                if (strcmp(label_table->labels[j].type, "external") == 0)
-                {
-                    vpc->storage[i].value |= (1 << 0);  /* Set bit 0 to 1 */
-                    vpc->storage[i].value &= ~(1 << 1); /* Set bit 1 to 0 */
-                }
-                else
-                {
-                    vpc->storage[i].value &= ~(1 << 0); /* Set bit 0 to 0 */
-                    vpc->storage[i].value |= (1 << 1);  /* Set bit 1 to 1 */
-                }
-
-                break;
-            }
-        }
-    }
-    return is_valid;
-}

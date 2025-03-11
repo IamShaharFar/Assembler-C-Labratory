@@ -43,7 +43,7 @@ int second_pass(FILE *am_file, LabelTable *label_table, VirtualPC *vpc)
 
     if (am_file == NULL)
     {
-        fprintf(stderr, "Error: NULL file pointer provided to second_pass.\n");
+        print_error_no_line(ERROR_NULL_POINTER);
         return FALSE;
     }
 
@@ -93,13 +93,9 @@ int second_pass(FILE *am_file, LabelTable *label_table, VirtualPC *vpc)
 
         if (is_in_label)
         {
-            validate_labels_and_relative_addresses(content, label_table, line_number, &is_valid_file);
             is_in_label = FALSE;
         }
-        else
-        {
-            validate_labels_and_relative_addresses(line, label_table, line_number, &is_valid_file);
-        }
+        validate_labels_and_relative_addresses(content, label_table, line_number, &is_valid_file);
 
         /* Skip empty lines */
         if (content == NULL || *content == '\0')

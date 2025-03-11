@@ -15,9 +15,10 @@
  *
  * @param ptr Pointer to the input string containing the directive.
  * @param vpc Pointer to the VirtualPC structure where the values will be stored.
+ * @param storage_full Pointer to an integer flag that will be set to if the storage is full.
  * @return The count of processed items (numbers or characters).
  */
-int process_data_or_string_directive(char *ptr, VirtualPC *vpc);
+int process_data_or_string_directive(char *ptr, VirtualPC *vpc, int *storage_full);
 
 /**
  * @brief Generates words from a command from a valid line of command and stores it in the VirtualPC storage.
@@ -28,24 +29,26 @@ int process_data_or_string_directive(char *ptr, VirtualPC *vpc);
  *
  * @param line Pointer to the input string containing the command line.
  * @param vpc Pointer to the VirtualPC structure where the binary command will be stored.
+ * @param storage_full Pointer to an integer flag that will be set to if the storage is full.
  * @return The count of stored items (1 for the command itself, plus any additional parameters).
  */
-int process_and_store_command(const char *line, VirtualPC *vpc);
-
-void process_operand(const char *param, unsigned int *first_word, unsigned int *word, int shift_opcode, int shift_reg, int *param_flag);
-
+int process_and_store_command(const char *line, VirtualPC *vpc, int *storage_full);
 
 /**
- * @brief Resolves and updates words in VirtualPC storage with label addresses.
+ * @brief Processes an operand and updates the binary representation in the provided words.
  *
- * This function scans the VirtualPC storage from address 100 to (IC + DC),
- * checking if a word's `encoded` field starts with '&' (indicating relative addressing)
- * or contains a label from the label table. It then updates the word's value with the
- * appropriate address or relative offset.
+ * This function processes an operand from the input string `param`. It determines the addressing mode
+ * (immediate, relative, direct, or register), updates the `first_word` and `word` with the appropriate
+ * binary representation, and sets the `param_flag` if the operand is valid.
  *
- * @param vpc Pointer to the VirtualPC structure.
- * @param label_table Pointer to the LabelTable structure.
+ * @param param Pointer to the input string containing the operand.
+ * @param first_word Pointer to the first word of the binary representation to be updated.
+ * @param word Pointer to the word where the operand value will be stored.
+ * @param shift_opcode Number of bits to shift the opcode for the addressing mode.
+ * @param shift_reg Number of bits to shift the register number.
+ * @param param_flag Pointer to the flag indicating if the operand is valid.
  */
-int resolve_and_update_labels(VirtualPC *vpc, const LabelTable *label_table);
+void process_operand(const char *param, unsigned int *first_word, unsigned int *word, int shift_opcode, int shift_reg, int *param_flag);
+
 
 #endif /* VPC_UTILS_H */

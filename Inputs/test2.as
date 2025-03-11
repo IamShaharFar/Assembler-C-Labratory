@@ -1,1 +1,2 @@
- MAIN: .data -1
+mov r8, r1       ; ERROR_ILLEGAL_REGISTER 
+mov r-1, r3      ; ERROR_ILLEGAL_REGISTER

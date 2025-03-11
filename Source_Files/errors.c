@@ -1,5 +1,6 @@
 /* errors.c */
 #include <stdio.h>
+#include <string.h>
 #include "../Header_Files/errors.h"
 
 const Error errors[] = {
@@ -9,6 +10,9 @@ const Error errors[] = {
     {ERROR_NULL_POINTER, "ERROR_NULL_POINTER", "Null pointer encountered"},
     {ERROR_FILE_PROCESSING, "ERROR_FILE_PROCESSING", "Error in preprocessing file, cannot continue"},
     {ERROR_ASSEMBLY_FAILED, "ERROR_ASSEMBLY_FAILED", "Assembly process failed, could not generate output file"},
+    {ERROR_FILE_DELETE, "ERROR_FILE_DELETE", "Failed to delete the temporary .am file"},
+    {ERROR_VPC_STORAGE_FULL, "ERROR_VPC_STORAGE_FULL", "VirtualPC storage is full - cannot store additional data"},
+
 
     /* File errors */
     {ERROR_MISSING_AS_FILE, "ERROR_MISSING_AS_FILE", "Missing source file - please provide a .as file"},
@@ -37,6 +41,9 @@ const Error errors[] = {
     {ERROR_RELATIVE_ADDRESSING_EXTERNAL_LABEL, "ERROR_RELATIVE_ADDRESSING_EXTERNAL_LABEL", "Cannot use relative addressing with an external label"},
     {ERROR_LABEL_NOT_DEFINED_IN_FILE, "ERROR_LABEL_NOT_DEFINED_IN_FILE", "Label not defined in the file - cannot use as an entry"},
     {ERROR_LABEL_IS_REGISTER, "ERROR_LABEL_IS_REGISTER", "Invalid label name - cannot use register names"},
+    {ERROR_EXTERN_LABEL_CONFLICT, "ERROR_EXTERN_LABEL_CONFLICT", "Extern label conflicts with a label declared in this file"},
+    {ERROR_LABEL_ALREADY_EXTERN, "ERROR_LABEL_ALREADY_EXTERN", "Label is already declared as extern and cannot be redefined"},
+
 
     /* Command errors */
     {ERROR_UNKNOWN_COMMAND, "ERROR_UNKNOWN_COMMAND", "Unknown command - not recognized by the assembler"},
@@ -70,6 +77,17 @@ const Error errors[] = {
     {ERROR_INVALID_LABEL_CONTENT, "ERROR_INVALID_LABEL_CONTENT", "Label content must be a valid .data/.string directive or a valid command."},
 
 };
+
+void print_error_with_code(ErrorCode code, int line_number, const char *code_part)
+{
+    fprintf(stderr, "Error at line %d: [%s] %s\n", 
+            line_number, get_error_name(code), get_error_message(code));
+
+    if (code_part && strlen(code_part) > 0)
+    {
+        fprintf(stderr, "    -> %s\n", code_part);
+    }
+}
 
 void print_error(ErrorCode code, int line_number) {
     fprintf(stderr, "Error at line %d: [%s] %s\n", line_number, get_error_name(code), get_error_message(code));

@@ -38,11 +38,11 @@ int main(int argc, char *argv[]) {
         init_virtual_pc(vpc);
         init_label_table(&label_table); /* Initialize LabelTable before use */
         init_mcro_table(&mcro_table); /* Initialize McroTable before use */
+        sprintf(am_filename, "%s.am", argv[i]);
         if (!process_file(argv[i], &mcro_table)) { /* Pass McroTable to process_file */
             print_error_no_line(ERROR_FILE_PROCESSING);
             success = FALSE;
         } else {
-            sprintf(am_filename, "%s.am", argv[i]);
             am_file = fopen(am_filename, "r");
             if (!am_file) {
                 print_error_no_line(ERROR_FILE_READ);
@@ -57,17 +57,21 @@ int main(int argc, char *argv[]) {
                 }
                 fclose(am_file);
             }
+            if (success)
+            {
+                print_error_no_line(ERROR_ASSEMBLY_FAILED);
+            }
         }
-        if (resolve_and_update_labels(vpc, &label_table) == FALSE) {
-            success = FALSE;
-        }
+
         if (success) {
             generate_object_file(vpc, argv[i]);
             generate_entry_file(&label_table, argv[i]);
             generate_externals_file(vpc, &label_table, argv[i]);
         }
         else {
-            print_error_no_line(ERROR_ASSEMBLY_FAILED);
+            if (remove(am_filename) != 0) {
+                print_error_no_line(ERROR_FILE_DELETE); 
+            }
         }
     }
 

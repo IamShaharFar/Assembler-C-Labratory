@@ -266,9 +266,16 @@ ErrorCode add_label(const char *name, int line_number, const char *line, const c
     }
 
     /* Check if the label already exists in the label table */
-    else if (label_exists(name, label_table))
+    for (i = 0; i < label_table->count; i++)
     {
-        err = ERROR_LABEL_DUPLICATE;
+        if (strcmp(name, label_table->labels[i].name) == 0)
+        {
+            if (label_table->labels[i].address == 0)
+            {
+                return ERROR_LABEL_ALREADY_EXTERN;
+            }
+            return ERROR_LABEL_DUPLICATE;
+        }
     }
     
     /* Existing code to check for label conflicts with macro names */
@@ -277,6 +284,7 @@ ErrorCode add_label(const char *name, int line_number, const char *line, const c
         if (strcmp(name, mcro_table->mcros[i].name) == 0)
         {
             err = ERROR_LABEL_IS_MCRO_NAME;
+            return err;
         }
     }
 

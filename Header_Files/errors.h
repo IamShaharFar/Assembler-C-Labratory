@@ -9,6 +9,8 @@ typedef enum {
     ERROR_NULL_POINTER = 2,
     ERROR_FILE_PROCESSING = 3,
     ERROR_ASSEMBLY_FAILED = 4,
+    ERROR_FILE_DELETE = 5,
+    ERROR_VPC_STORAGE_FULL = 6,
 
     /* File errors: 10-19 */
     ERROR_MISSING_AS_FILE = 10,
@@ -37,6 +39,8 @@ typedef enum {
     ERROR_RELATIVE_ADDRESSING_EXTERNAL_LABEL = 48,
     ERROR_LABEL_NOT_DEFINED_IN_FILE = 49,
     ERROR_LABEL_IS_REGISTER = 50,
+    ERROR_EXTERN_LABEL_CONFLICT  = 67,
+    ERROR_LABEL_ALREADY_EXTERN = 69,
 
     /* Command errors: 50-59 */
     ERROR_UNKNOWN_COMMAND = 51,
@@ -77,6 +81,7 @@ typedef struct {
 
 extern const Error errors[];
 
+void print_error_with_code(ErrorCode code, int line_number, const char *code_part);
 void print_error(ErrorCode code, int line_number);
 void print_error_no_line(ErrorCode code);
 const char* get_error_message(ErrorCode code);
