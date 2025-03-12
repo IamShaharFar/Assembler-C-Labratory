@@ -81,7 +81,7 @@ typedef struct {
 
 extern const Error errors[];
 
-void print_error_with_code(ErrorCode code, int line_number, const char *code_part);
+void print_error_with_code(ErrorCode code, int line_number, const char *start, const char *end);
 void print_error(ErrorCode code, int line_number);
 void print_error_no_line(ErrorCode code);
 const char* get_error_message(ErrorCode code);

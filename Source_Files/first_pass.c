@@ -16,12 +16,11 @@
 #include "../Header_Files/vpc_utils.h"
 #include "../Header_Files/utils.h"
 
-
 /**
  * @brief Performs the first pass on an assembly source file to identify and process labels, directives, and commands.
  *
  * This function reads the assembly file line-by-line, identifies labels, verifies their validity, processes data storage
- * directives (.data, .string), command instructions, and external label declarations (.extern). It updates the virtual PC 
+ * directives (.data, .string), command instructions, and external label declarations (.extern). It updates the virtual PC
  * and label table. Errors encountered during processing are printed.
  *
  * @param fp           Pointer to the assembly (.am) source file to process.
@@ -37,14 +36,14 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
     char original_line[MAX_LINE_LENGTH]; /* Copy of the original line */
     char label[MAX_LINE_LENGTH];
     char content[MAX_LINE_LENGTH];
-    char *colon_pos;
+    char *colon_pos, *quote_pos;
     char *content_after_label; /* Pointer to the content after the label (if no label, points to the start of the line) */
     char *ptr;
     int line_number = 0;
     int is_valid_file = TRUE;
     int storage_full = FALSE;
     size_t label_length;
-    ErrorCode err;
+    ErrorCode err, error;
 
     /* Validate all input pointers */
     if (!fp)
@@ -79,6 +78,20 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
         ptr = advance_to_next_token(line);         /* Skip leading spaces */
 
         colon_pos = strchr(line, ':');
+        quote_pos = strchr(line, '"');
+
+        if (strncmp(line, ".string", 7) != 0)
+        {
+            if (colon_pos && quote_pos)
+            {
+                if ((quote_pos - line < colon_pos - line)) /* If the first '"' appears before the first ':' */
+                {
+                    is_valid_file = FALSE;
+                    print_error(ERROR_ILLEGAL_LABEL, line_number);
+                    continue;
+                }
+            }
+        }
 
         /* Check if the line is a label definition */
         if (colon_pos)
@@ -104,6 +117,7 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
                 }
                 else /* data storage instruction */
                 {
+                    error = add_label(label, line_number, content, "data", vpc, label_table, mcro_table);
                     if (err != ERROR_SUCCESS) /* invalid data storage instruction */
                     {
                         is_valid_file = FALSE;
@@ -113,15 +127,14 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
                     {
                         process_data_or_string_directive(content, vpc, &storage_full); /* process the data storage instruction */
                     }
-                    err = add_label(label, line_number, content, "data", vpc, label_table, mcro_table);
 
                     /* errors like memory allocation or label duplicate or label is macro name */
-                    if (err != ERROR_SUCCESS) 
+                    if (error != ERROR_SUCCESS)
                     {
                         is_valid_file = FALSE;
-                        print_error(err, line_number);
+                        print_error(error, line_number);
                     }
-                    continue; 
+                    continue;
                 }
 
                 err = is_valid_command(content);
@@ -129,6 +142,7 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
                 /* check if the line start with a valid command name */
                 if (err != ERROR_UNKNOWN_COMMAND)
                 {
+                    error = add_label(label, line_number, content, "code", vpc, label_table, mcro_table);
                     if (err != ERROR_SUCCESS) /* invalid command */
                     {
                         is_valid_file = FALSE;
@@ -138,13 +152,12 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
                     {
                         process_and_store_command(content, vpc, &storage_full); /* process the command */
                     }
-                    err = add_label(label, line_number, content, "code", vpc, label_table, mcro_table);
 
                     /* errors like memory allocation or label duplicate or label is macro name */
-                    if (err != ERROR_SUCCESS)
+                    if (error != ERROR_SUCCESS)
                     {
                         is_valid_file = FALSE;
-                        print_error(err, line_number);
+                        print_error(error, line_number);
                     }
                     continue;
                 }

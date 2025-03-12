@@ -78,19 +78,16 @@ const Error errors[] = {
 
 };
 
-void print_error_with_code(ErrorCode code, int line_number, const char *code_part)
+void print_error_with_code(ErrorCode code, int line_number, const char *start, const char *end)
 {
-    fprintf(stderr, "Error at line %d: [%s] %s\n", 
-            line_number, get_error_name(code), get_error_message(code));
-
-    if (code_part && strlen(code_part) > 0)
-    {
-        fprintf(stderr, "    -> %s\n", code_part);
-    }
+    fprintf(stderr, "Error at line %d: [%s] %s \n       %.*s <<<-- ERROR HERE\n\n",
+            line_number, get_error_name(code), get_error_message(code),
+            (int)(end - start), start);
 }
 
+
 void print_error(ErrorCode code, int line_number) {
-    fprintf(stderr, "Error at line %d: [%s] %s\n", line_number, get_error_name(code), get_error_message(code));
+    fprintf(stderr, "Error at line %d: [%s] %s\n\n", line_number, get_error_name(code), get_error_message(code));
 }
 
 void print_error_no_line(ErrorCode code) {

@@ -162,7 +162,7 @@ void validate_labels_and_relative_addresses(char *content_after_label, LabelTabl
             {
                 if (!label_exists(operand, label_table))
                 {
-                    print_error(ERROR_UNDEFINED_LABEL, line_number);
+                    print_error_with_code(ERROR_UNDEFINED_LABEL, line_number, content_after_label, param_ptr);
                     *is_valid_file = FALSE;
                 }
             }
@@ -177,7 +177,7 @@ void validate_labels_and_relative_addresses(char *content_after_label, LabelTabl
                         label_found = TRUE;
                         if (label_table->labels[i].address == 0)
                         {
-                            print_error(ERROR_RELATIVE_ADDRESSING_EXTERNAL_LABEL, line_number);
+                            print_error_with_code(ERROR_RELATIVE_ADDRESSING_EXTERNAL_LABEL, line_number, content_after_label, param_ptr);
                             *is_valid_file = FALSE;
                         }
                         break;
@@ -185,7 +185,7 @@ void validate_labels_and_relative_addresses(char *content_after_label, LabelTabl
                 }
                 if (!label_found)
                 {
-                    print_error(ERROR_UNDEFINED_LABEL_RELATIVE, line_number);
+                    print_error_with_code(ERROR_UNDEFINED_LABEL_RELATIVE, line_number, content_after_label, param_ptr);
                     *is_valid_file = FALSE;
                 }
             }

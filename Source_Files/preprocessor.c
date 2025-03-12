@@ -148,8 +148,6 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
     ErrorCode error;
     int ch, pos, is_valid = TRUE;
 
-    init_mcro_table(mcro_table); /* Initialize the macro table */
-
     line = (char *)malloc(buffer_size); /* Allocate memory for the line */
 
     if (!line)
@@ -222,6 +220,7 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
         token = strtok(temp_line, " \t\n"); 
         if (!token)
         {
+            free(line);
             free(temp_line);
             continue;
         }
@@ -231,6 +230,7 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
         if (strcmp(token, "mcroend") == 0)
         {
             in_mcro = FALSE; 
+            free(line);
             free(temp_line);
             continue;
         }
@@ -243,6 +243,7 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
             if (!token)
             {
                 print_error(ERROR_MCRO_NO_NAME, line_number);
+                free(line);
                 free(temp_line);
                 continue;
             }
@@ -254,6 +255,7 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
             if (error == ERROR_MCRO_ILLEGAL_NAME || error == ERROR_MCRO_DUPLICATE)
             {
                 print_error(error, line_number);
+                free(line);
                 free(temp_line);
                 is_valid = FALSE;
             }
@@ -262,12 +264,14 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
             else if (error != ERROR_SUCCESS)
             {
                 print_error(error, line_number);
+                free(line);
                 free(temp_line);
                 is_valid = FALSE;
                 return is_valid;
             }
 
             in_mcro = TRUE;
+            free(line);
             free(temp_line);
             continue;
         }
@@ -287,6 +291,7 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
             if (error != ERROR_SUCCESS)
             {
                 print_error(error, line_number);
+                free(line);
                 free(temp_line);
                 is_valid = FALSE;
                 return is_valid;
