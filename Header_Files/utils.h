@@ -55,6 +55,17 @@ char* advance_past_token_or_comma(char* str);
 int validate_register_operand(const char* str);
 
 /**
+ * @brief Checks if the given register is non-existing (invalid).
+ *
+ * This function checks whether the provided register name is one of the
+ * invalid registers ("r8", "r9").
+ *
+ * @param reg The register name to check.
+ * @return TRUE (1) if the register is invalid, FALSE (0) otherwise.
+ */
+int is_non_existing_register(const char *reg);
+
+/**
  * @brief Trims trailing newline, carriage return, space, and tab characters from a string.
  *
  * This function removes any trailing newline (`\n`), carriage return (`\r`), space (` `), and tab (`\t`)

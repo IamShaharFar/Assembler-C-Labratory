@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 /* Project-specific headers */
 #include "../Header_Files/first_pass.h"
@@ -37,9 +38,11 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
     char label[MAX_LINE_LENGTH];
     char content[MAX_LINE_LENGTH];
     char *colon_pos, *quote_pos;
+    char **data_lines = NULL;  /* Dynamic array to store .data/.string lines */
+    int data_line_count = 0;   /* Number of stored lines */
     char *content_after_label; /* Pointer to the content after the label (if no label, points to the start of the line) */
     char *ptr;
-    int line_number = 0;
+    int line_number = 0, i;
     int is_valid_file = TRUE;
     int storage_full = FALSE;
     size_t label_length;
@@ -107,90 +110,152 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
 
             strncpy(content, content_after_label, MAX_LINE_LENGTH - 1);
             content[MAX_LINE_LENGTH - 1] = '\0';
-
             err = is_valid_label(label);
-            if (err == ERROR_SUCCESS)
-            {
-                err = is_data_storage_instruction(content);
-                if (err == ERROR_INVALID_STORAGE_DIRECTIVE) /* not a data storage instruction, maybe a command */
-                {
-                }
-                else /* data storage instruction */
-                {
-                    error = add_label(label, line_number, content, "data", vpc, label_table, mcro_table);
-                    if (err != ERROR_SUCCESS) /* invalid data storage instruction */
-                    {
-                        is_valid_file = FALSE;
-                        print_error(err, line_number);
-                    }
-                    else
-                    {
-                        process_data_or_string_directive(content, vpc, &storage_full); /* process the data storage instruction */
-                    }
-
-                    /* errors like memory allocation or label duplicate or label is macro name */
-                    if (error != ERROR_SUCCESS)
-                    {
-                        is_valid_file = FALSE;
-                        print_error(error, line_number);
-                    }
-                    continue;
-                }
-
-                err = is_valid_command(content);
-
-                /* check if the line start with a valid command name */
-                if (err != ERROR_UNKNOWN_COMMAND)
-                {
-                    error = add_label(label, line_number, content, "code", vpc, label_table, mcro_table);
-                    if (err != ERROR_SUCCESS) /* invalid command */
-                    {
-                        is_valid_file = FALSE;
-                        print_error(err, line_number);
-                    }
-                    else
-                    {
-                        process_and_store_command(content, vpc, &storage_full); /* process the command */
-                    }
-
-                    /* errors like memory allocation or label duplicate or label is macro name */
-                    if (error != ERROR_SUCCESS)
-                    {
-                        is_valid_file = FALSE;
-                        print_error(error, line_number);
-                    }
-                    continue;
-                }
-
-                /* if the line is not a valid command or data storage instruction */
-                is_valid_file = FALSE;
-                print_error(err, line_number);
-                continue;
-            }
-
             /* invalid label */
-            else
+            if (err != ERROR_SUCCESS)
             {
-                is_valid_file = FALSE;
                 print_error(err, line_number);
+                is_valid_file = FALSE;
+            }
+
+            if (strncmp(content, ".extern", 7) == 0)
+            {
+                if (!isspace((unsigned char)content[7]) && content[7] != '\0')
+                {
+                    print_error(ERROR_MAYBE_MEANT_EXTERN, line_number);
+                    is_valid_file = FALSE;
+                    continue;
+                }
+
+                err = is_valid_extern_label(content);
+                if (err == ERROR_SUCCESS)
+                {
+                    char *ptr_content = content + 8;
+                    ptr_content[strcspn(ptr_content, "\r\n")] = '\0';
+                    print_warning(WARNING_LABEL_BEFORE_EXTERN, line_number);
+                    err = add_label(ptr_content, line_number, "", "external", vpc, label_table, mcro_table);
+                    if (err != ERROR_SUCCESS)
+                    {
+                        print_error(err, line_number);
+                        is_valid_file = FALSE;
+                    }
+                }
+                else
+                {
+                    print_error(err, line_number);
+                    is_valid_file = FALSE;
+                }
                 continue;
             }
+            else if (strncmp(content, ".entry", 6) == 0)
+            {
+                if (!isspace((unsigned char)content[6]) && content[6] != '\0')
+                {
+                    print_error(ERROR_MAYBE_MEANT_ENTRY, line_number);
+                    is_valid_file = FALSE;
+                }
+                continue;
+            }
+            err = is_data_storage_instruction(content);
+            if (err == ERROR_INVALID_STORAGE_DIRECTIVE) /* not a data storage instruction, maybe a command */
+            {
+            }
+            else /* data storage instruction */
+            {
+                error = add_label(label, line_number, content, "data", vpc, label_table, mcro_table);
+                if (err != ERROR_SUCCESS)
+                {
+                    print_error(err, line_number);
+                    is_valid_file = FALSE;
+                }
+                else
+                {
+                    /* Allocate space for a new line */
+                    char **temp = realloc(data_lines, (data_line_count + 1) * sizeof(char *));
+                    vpc->DC += count_data_or_string_elements(content);
+                    if (!temp)
+                    {
+                        print_error_no_line(ERROR_MEMORY_ALLOCATION);
+                        is_valid_file = FALSE;
+                    }
+                    else
+                    {
+                        data_lines = temp;
+                        data_lines[data_line_count] = (char *)malloc(strlen(content) + 1);
+                        if (!data_lines[data_line_count])
+                        {
+                            print_error_no_line(ERROR_MEMORY_ALLOCATION);
+                            is_valid_file = FALSE;
+                        }
+                        else
+                        {
+                            strcpy(data_lines[data_line_count], content);
+                            data_line_count++;
+                        }
+                    }
+                }
+
+                /* errors like memory allocation or label duplicate or label is macro name */
+                if (error != ERROR_SUCCESS)
+                {
+                    print_error(error, line_number);
+                    is_valid_file = FALSE;
+                }
+                continue;
+            }
+
+            err = is_valid_command(content);
+
+            /* check if the line start with a valid command name */
+            if (err != ERROR_UNKNOWN_COMMAND)
+            {
+                error = add_label(label, line_number, content, "code", vpc, label_table, mcro_table);
+                if (err != ERROR_SUCCESS) /* invalid command */
+                {
+                    print_error(err, line_number);
+                    is_valid_file = FALSE;
+                }
+                else
+                {
+                    process_and_store_command(content, vpc, &storage_full); /* process the command */
+                }
+
+                /* errors like memory allocation or label duplicate or label is macro name */
+                if (error != ERROR_SUCCESS)
+                {
+                    print_error(error, line_number);
+                    is_valid_file = FALSE;
+                }
+                continue;
+            }
+
+            /* if the line is not a valid command or data storage instruction */
+            print_error(err, line_number);
+            is_valid_file = FALSE;
+            continue;
         }
 
         /* Check if the line is an entry or extern declaration */
-        if (is_valid_entry_or_extern_line(line))
+        if (strncmp(ptr, ".extern", 7) == 0)
         {
+            if (!isspace((unsigned char)ptr[7]) && ptr[7] != '\0')
+            {
+                print_error(ERROR_MAYBE_MEANT_EXTERN, line_number);
+                is_valid_file = FALSE;
+                continue;
+            }
+
             err = is_valid_extern_label(line);
 
             /* Check if the line is a non valid .extern directive */
-            if (err != ERROR_SUCCESS && err != ERROR_NOT_EXTERN_LINE)
+            if (err != ERROR_SUCCESS)
             {
-                is_valid_file = FALSE;
                 print_error(err, line_number);
+                is_valid_file = FALSE;
             }
 
             /* Check if the line is a valid .extern directive */
-            else if (err == ERROR_SUCCESS)
+            else
             {
                 ptr = advance_to_next_token(line);
                 ptr += 7; /* Move past ".extern" */
@@ -202,15 +267,25 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
                 /* errors like memory allocation or label duplicate or label is macro name */
                 if (err == ERROR_LABEL_DUPLICATE)
                 {
-                    is_valid_file = FALSE;
                     print_error(ERROR_EXTERN_LABEL_CONFLICT, line_number);
+                    is_valid_file = FALSE;
                 }
                 else if (err != ERROR_SUCCESS)
                 {
-                    is_valid_file = FALSE;
                     print_error(err, line_number);
+                    is_valid_file = FALSE;
                 }
             }
+            continue;
+        }
+        if (strncmp(ptr, ".entry", 6) == 0)
+        {
+            if (!isspace((unsigned char)ptr[6]) && ptr[6] != '\0')
+            {
+                print_error(ERROR_MAYBE_MEANT_ENTRY, line_number);
+                is_valid_file = FALSE;
+            }
+
             continue;
         }
 
@@ -218,13 +293,36 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
         err = is_data_storage_instruction(line);
         if (err == ERROR_SUCCESS)
         {
-            process_data_or_string_directive(line, vpc, &storage_full); /* process the data storage instruction */
+            /* process_data_or_string_directive(line, vpc, &storage_full); */ /* process the data storage instruction */
+            /* Allocate space for a new line */
+            char **temp = realloc(data_lines, (data_line_count + 1) * sizeof(char *));
+            vpc->DC += count_data_or_string_elements(line);
+            if (!temp)
+            {
+                print_error_no_line(ERROR_MEMORY_ALLOCATION);
+                is_valid_file = FALSE;
+            }
+            else
+            {
+                data_lines = temp;
+                data_lines[data_line_count] = (char *)malloc(strlen(line) + 1);
+                if (!data_lines[data_line_count])
+                {
+                    print_error_no_line(ERROR_MEMORY_ALLOCATION);
+                    is_valid_file = FALSE;
+                }
+                else
+                {
+                    strcpy(data_lines[data_line_count], line);
+                    data_line_count++;
+                }
+            }
             continue;
         }
         else if (err != ERROR_INVALID_STORAGE_DIRECTIVE)
         {
-            is_valid_file = FALSE;
             print_error(err, line_number);
+            is_valid_file = FALSE;
             continue;
         }
 
@@ -239,14 +337,34 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
         /* invalid line because it's not a valid command or data storage instruction */
         else
         {
-            is_valid_file = FALSE;
             print_error(err, line_number);
+            is_valid_file = FALSE;
         }
     }
+
+    for (i = 0; i < data_line_count; i++)
+    {
+        process_data_or_string_directive(data_lines[i], vpc, &storage_full);
+    }
+
+    for (i = 0; i < label_table->count; i++)
+    {
+        if (strstr(label_table->labels[i].type, "data") != NULL)
+        {
+            label_table->labels[i].address = label_table->labels[i].address + vpc->IC;
+        }
+    }
+    /* Free all stored data/string lines */
+    for (i = 0; i < data_line_count; i++)
+    {
+        free(data_lines[i]);
+    }
+    free(data_lines);
+
     if (storage_full)
     {
-        is_valid_file = FALSE;
         print_error_no_line(ERROR_VPC_STORAGE_FULL);
+        is_valid_file = FALSE;
     }
     return is_valid_file;
 }

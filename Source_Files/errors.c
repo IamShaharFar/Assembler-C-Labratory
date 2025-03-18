@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "../Header_Files/errors.h"
+#include "../Header_Files/globals.h"
 
 const Error errors[] = {
     /* General errors */
@@ -12,7 +13,6 @@ const Error errors[] = {
     {ERROR_ASSEMBLY_FAILED, "ERROR_ASSEMBLY_FAILED", "Assembly process failed, could not generate output file"},
     {ERROR_FILE_DELETE, "ERROR_FILE_DELETE", "Failed to delete the temporary .am file"},
     {ERROR_VPC_STORAGE_FULL, "ERROR_VPC_STORAGE_FULL", "VirtualPC storage is full - cannot store additional data"},
-
 
     /* File errors */
     {ERROR_MISSING_AS_FILE, "ERROR_MISSING_AS_FILE", "Missing source file - please provide a .as file"},
@@ -26,31 +26,45 @@ const Error errors[] = {
     {ERROR_MCRO_NO_NAME, "ERROR_MCRO_NO_NAME", "Macro is missing a name"},
     {ERROR_MCRO_DUPLICATE, "ERROR_MCRO_DUPLICATE", "Macro name already exists - use a different name"},
     {ERROR_MCRO_BEFORE_DEF, "ERROR_MCRO_BEFORE_DEF", "Trying to use macro before defining it"},
+    {ERROR_MCRO_TOO_LONG, "ERROR_MCRO_TOO_LONG", "Macro name exceeds the maximum allowed length."},
+    {ERROR_MCRO_IS_REGISTER, "ERROR_MCRO_IS_REGISTER", "Macro name cannot be a register name."},
+    {ERROR_MCRO_ILLEGAL_CHAR, "ERROR_MCRO_ILLEGAL_CHAR", "Macro name contains an illegal character."},
+    {ERROR_MCRO_ILLEGAL_START, "ERROR_MCRO_ILLEGAL_START", "Macro name cannot start with a non-letter character."},
+    {ERROR_MCRO_RESERVED_NAME, "ERROR_MCRO_RESERVED_NAME", "Macro name cannot be a reserved word."},
     {ERROR_MCRO_ILLEGAL_NAME, "ERROR_MCRO_ILLEGAL_NAME", "Invalid macro name - use only letters and numbers"},
+    {ERROR_MCRO_UNEXPECTED_TEXT, "ERROR_MCRO_UNEXPECTED_TEXT", "Unexpected text after macro name. Only the macro name should follow 'mcro'."},
 
     /* Label and register errors */
+    {ERROR_ENTRY_MISSING_LABEL, "ERROR_ENTRY_MISSING_LABEL", "Missing label after .entry directive."},
+    {ERROR_EXTERN_MISSING_LABEL, "ERROR_EXTERN_MISSING_LABEL", "Missing label after .extern directive."},
+    {ERROR_ENTRY_INSTEAD_OF_EXTERN, "ERROR_ENTRY_INSTEAD_OF_EXTERN", "Invalid use of .entry. Expected .extern instead."},
+    {ERROR_ENTRY_EXTRA_TEXT, "ERROR_ENTRY_EXTRA_TEXT", "Unexpected text after entry label. Only spaces or a comment are allowed."},
+    {ERROR_EXTERN_EXTRA_TEXT, "ERROR_EXTERN_EXTRA_TEXT", "Unexpected text after extern label. Only spaces or a comment are allowed."},
     {ERROR_LABEL_TOO_LONG, "ERROR_LABEL_TOO_LONG", "Label name is too long - maximum length is 30 characters"},
     {ERROR_ILLEGAL_LABEL_START, "ERROR_ILLEGAL_LABEL_START", "Invalid label name - start with letter, use only letters and numbers for the rest"},
     {ERROR_ILLEGAL_LABEL_CHAR, "ERROR_ILLEGAL_LABEL_CHAR", "Invalid label name - use only letters and numbers"},
-    {ERRPR_LABEL_IS_RESERVED_WORD, "ERRPR_LABEL_IS_RESERVED_WORD", "Invalid label name - cannot use reserved words"},
+    {ERROR_LABEL_IS_RESERVED_WORD, "ERROR_LABEL_IS_RESERVED_WORD", "Invalid label name - cannot use reserved words"},
     {ERROR_ILLEGAL_LABEL, "ERROR_ILLEGAL_LABEL", "Invalid label name - start with letter, use only letters and numbers"},
     {ERROR_LABEL_DUPLICATE, "ERROR_LABEL_DUPLICATE", "Duplicate label found - use a different name"},
     {ERROR_LABEL_IS_MCRO_NAME, "ERROR_LABEL_IS_MCRO_NAME", "Label name conflicts with macro name - use a different name"},
-    {ERROR_UNDEFINED_LABEL, "ERROR_UNDEFINED_LABEL", "Undefined label - label not found in the label table"},
+    {ERROR_UNDEFINED_LABEL, "ERROR_UNDEFINED_LABEL", "Label not defined in the file - cannot use as an entry"},
     {ERROR_UNDEFINED_LABEL_RELATIVE, "ERROR_UNDEFINED_LABEL_RELATIVE", "Undefined label - label not found in the label table for relative addressing"},
     {ERROR_RELATIVE_ADDRESSING_EXTERNAL_LABEL, "ERROR_RELATIVE_ADDRESSING_EXTERNAL_LABEL", "Cannot use relative addressing with an external label"},
-    {ERROR_LABEL_NOT_DEFINED_IN_FILE, "ERROR_LABEL_NOT_DEFINED_IN_FILE", "Label not defined in the file - cannot use as an entry"},
+    {ERROR_LABEL_NOT_DEFINED_IN_FILE, "ERROR_LABEL_NOT_DEFINED_IN_FILE", "Label is already declared as .extern and cannot be redefined"},
     {ERROR_LABEL_IS_REGISTER, "ERROR_LABEL_IS_REGISTER", "Invalid label name - cannot use register names"},
     {ERROR_EXTERN_LABEL_CONFLICT, "ERROR_EXTERN_LABEL_CONFLICT", "Extern label conflicts with a label declared in this file"},
     {ERROR_LABEL_ALREADY_EXTERN, "ERROR_LABEL_ALREADY_EXTERN", "Label is already declared as extern and cannot be redefined"},
-
+    {ERROR_DUPLICATE_ENTRY_LABEL, "ERROR_DUPLICATE_ENTRY_LABEL", "Label is already declared as .entry"},
+    {ERROR_MAYBE_MEANT_ENTRY, "ERROR_MAYBE_MEANT_ENTRY", "Unexpected characters after '.entry'. Did you mean '.entry <label>'?"},
+    {ERROR_MAYBE_MEANT_EXTERN, "ERROR_MAYBE_MEANT_EXTERN", "Unexpected characters after '.extern'. Did you mean '.extern <label>'?"},
+       
 
     /* Command errors */
     {ERROR_UNKNOWN_COMMAND, "ERROR_UNKNOWN_COMMAND", "Unknown command - not recognized by the assembler"},
     {ERROR_INVALID_PARAM_COUNT, "ERROR_INVALID_PARAM_COUNT", "Missing parameters - check the command syntax"},
-    {ERROR_MISSING_COMMA, "ERROR_MISSING_COMMA","Missing comma between parameters - add a comma"},
-    {ERROR_CONSECUTIVE_COMMAS, "ERROR_CONSECUTIVE_COMMAS","Consecutive commas detected - remove extra commas"},
-    {ERROR_EXTRA_TEXT_AFTER_COMMAND, "ERROR_EXTRA_TEXT_AFTER_COMMAND","Extra text after command - remove unnecessary text"},
+    {ERROR_MISSING_COMMA, "ERROR_MISSING_COMMA", "Missing comma between parameters - add a comma"},
+    {ERROR_CONSECUTIVE_COMMAS, "ERROR_CONSECUTIVE_COMMAS", "Consecutive commas detected - remove extra commas"},
+    {ERROR_EXTRA_TEXT_AFTER_COMMAND, "ERROR_EXTRA_TEXT_AFTER_COMMAND", "Extra text after command - remove unnecessary text"},
 
     {ERROR_INVALID_DIRECT_OR_REGISTER_OPERAND, "ERROR_INVALID_DIRECT_OR_REGISTER_OPERAND", "Invalid operand. Expected Direct Addressing or Register Address Direct."},
     {ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_FIRST_OPERAND, "ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_FIRST_OPERAND", "Invalid first operand. Must be Immediate Address, Direct Addressing, or Register Address Direct."},
@@ -61,6 +75,8 @@ const Error errors[] = {
     {ERROR_INVALID_RELATIVE_OR_DIRECT_OPERAND, "ERROR_INVALID_RELATIVE_OR_DIRECT_OPERAND", "Invalid operand. Expected Relative Addressing or Direct Addressing."},
     {ERROR_INVALID_IMMEDIATE_OPERAND, "ERROR_INVALID_IMMEDIATE_OPERAND", "Invalid numeric value. Expected Immediate Address."},
     {ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_OPERAND, "ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_OPERAND", "Invalid operand. Expected Immediate Address, Direct Addressing, or Register Address Direct."},
+    {ERROR_INVALID_REGISTER_FIRST_OPERAND, "ERROR_INVALID_REGISTER_FIRST_OPERAND", "Invalid register in the first operand. Expected r0-r7."},
+    {ERROR_INVALID_REGISTER_SECOND_OPERAND, "ERROR_INVALID_REGISTER_SECOND_OPERAND", "Invalid register in the second operand. Expected r0-r7."},
     {ERROR_INVALID_DATA_REAL_NUMBER, "ERROR_INVALID_DATA_REAL_NUMBER", "Invalid numeric value. Expected an integer."},
     {ERROR_NOT_EXTERN_LINE, "ERROR_NOT_EXTERN_LINE", "Line is not a valid .extern directive."},
 
@@ -75,43 +91,116 @@ const Error errors[] = {
     {ERROR_INVALID_STORAGE_DIRECTIVE, "ERROR_INVALID_STORAGE_DIRECTIVE", "Invalid storage instruction. Expected .data or .string directive."},
     {ERROR_INVALID_DATA_MISSING_COMMA, "ERROR_INVALID_DATA_MISSING_COMMA", "Invalid .data directive: Missing comma between numbers."},
     {ERROR_INVALID_LABEL_CONTENT, "ERROR_INVALID_LABEL_CONTENT", "Label content must be a valid .data/.string directive or a valid command."},
+    {ERROR_INVALID_DATA_TOO_LARGE, "ERROR_INVALID_DATA_TOO_LARGE", "Integer in .data directive exceeds 24-bit limit."},
+    {ERROR_STRING_NO_VALUE, "ERROR_STRING_NO_VALUE", "Missing string value after .string directive."},
 
+
+};
+
+const Warning warnings[] = {
+    {WARNING_LABEL_BEFORE_EXTERN, "WARNING_LABEL_BEFORE_EXTERN", "Label before .extern directive is ignored."},
+    {WARNING_LABEL_BEFORE_ENTRY, "WARNING_LABEL_BEFORE_ENTRY", "Label before .entry directive is ignored."},
+    {WARNING_UNUSED_LABEL, "WARNING_UNUSED_LABEL", "Label is defined but never used."},
+    {WARNING_MULTIPLE_SPACES, "WARNING_MULTIPLE_SPACES", "Unnecessary spaces detected in the line."},
+    {WARNING_REDUNDANT_ENTRY, "WARNING_REDUNDANT_ENTRY", "Label declared multiple times as .entry."},
 };
 
 void print_error_with_code(ErrorCode code, int line_number, const char *start, const char *end)
 {
-    fprintf(stderr, "Error at line %d: [%s] %s \n       %.*s <<<-- ERROR HERE\n\n",
-            line_number, get_error_name(code), get_error_message(code),
-            (int)(end - start), start);
+    fprintf(stderr, "%sError at line %d: [%s] %s \n       %.*s <<<-- ERROR HERE%s\n",
+            COLOR_RED, line_number, get_error_name(code), get_error_message(code),
+            (int)(end - start), start, COLOR_RESET);
 }
 
 
-void print_error(ErrorCode code, int line_number) {
-    fprintf(stderr, "Error at line %d: [%s] %s\n\n", line_number, get_error_name(code), get_error_message(code));
+
+void print_error(ErrorCode code, int line_number)
+{
+    fprintf(stderr, COLOR_RED "Error at line %d: [%s] %s" COLOR_RESET "\n", 
+            line_number, get_error_name(code), get_error_message(code));
 }
 
-void print_error_no_line(ErrorCode code) {
-   fprintf(stderr, "Error: [%s] %s\n", get_error_name(code), get_error_message(code));
+
+/**
+ * @brief Prints a warning message with the line number.
+ *
+ * @param code The warning code.
+ * @param line_number The line number where the warning occurs.
+ */
+void print_warning(WarningCode code, int line_number)
+{
+    fprintf(stderr, "%sWarning at line %d: [%s] %s%s\n", 
+            COLOR_YELLOW, line_number, get_warning_name(code), get_warning_message(code), COLOR_RESET);
 }
 
-const char* get_error_message(ErrorCode code) {
+
+void print_error_no_line(ErrorCode code)
+{
+    fprintf(stderr, "%sError: [%s] %s%s\n", 
+            COLOR_RED, get_error_name(code), get_error_message(code), COLOR_RESET);
+}
+
+
+const char *get_error_message(ErrorCode code)
+{
     int i;
-    for (i = 0; i < sizeof(errors) / sizeof(errors[0]); i++) {
-        if (errors[i].code == code) {
-            return errors[i].message; 
+    for (i = 0; i < sizeof(errors) / sizeof(errors[0]); i++)
+    {
+        if (errors[i].code == code)
+        {
+            return errors[i].message;
         }
     }
     return "Unknown error";
 }
 
-
-const char* get_error_name(ErrorCode code) {
+const char *get_error_name(ErrorCode code)
+{
     int i;
-    for (i = 0; i < sizeof(errors) / sizeof(errors[0]); i++) {
-        if (errors[i].code == code) {
-            return errors[i].name; 
+    for (i = 0; i < sizeof(errors) / sizeof(errors[0]); i++)
+    {
+        if (errors[i].code == code)
+        {
+            return errors[i].name;
         }
     }
     return "UNKNOWN_ERROR";
 }
 
+/**
+ * @brief Gets the warning name as a string.
+ *
+ * @param code The warning code.
+ * @return The name of the warning.
+ */
+const char* get_warning_name(WarningCode code)
+{
+    int i;
+    for (i = 0; i < sizeof(warnings) / sizeof(warnings[0]); i++)
+    {
+        if (warnings[i].code == code)
+        {
+            return warnings[i].name;
+        }
+    }
+    return "UNKNOWN_WARNING";
+}
+
+/**
+ * @brief Gets the warning message as a string.
+ *
+ * @param code The warning code.
+ * @return The message of the warning.
+ */
+const char* get_warning_message(WarningCode code)
+{
+    int i;
+    for (i = 0; i < sizeof(warnings) / sizeof(warnings[0]); i++)
+    {
+        if (warnings[i].code == code)
+        {
+            return warnings[i].message;
+        }
+    }
+    return "Unknown warning.";
+}

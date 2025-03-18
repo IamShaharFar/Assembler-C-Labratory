@@ -112,7 +112,7 @@ void generate_entry_file(const LabelTable *label_table, const char *filename)
     {
         if (strstr(sorted_labels[i].type, "entry") != NULL)
         {
-            fprintf(ent_file, "%07u %s\n", sorted_labels[i].address, sorted_labels[i].name);
+            fprintf(ent_file, "%s %07u\n", sorted_labels[i].name, sorted_labels[i].address);
         }
     }
 

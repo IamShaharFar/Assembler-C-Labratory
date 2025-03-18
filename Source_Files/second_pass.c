@@ -39,7 +39,7 @@ int second_pass(FILE *am_file, LabelTable *label_table, VirtualPC *vpc)
     int line_number = 0;
     size_t label_length = 0;
     ErrorCode err;
-    int is_valid_file = TRUE, is_in_label = FALSE;
+    int is_valid_file = TRUE;
 
     if (am_file == NULL)
     {
@@ -66,8 +66,7 @@ int second_pass(FILE *am_file, LabelTable *label_table, VirtualPC *vpc)
             }
             else if (*ptr == ':' && !inside_string)
             {
-                is_in_label = TRUE;
-                colon_pos = ptr; /* Found a valid label colon */
+                colon_pos = ptr;                 /* Found a valid label colon */
                 label_length = colon_pos - line; /* Set label length */
                 break;
             }
@@ -85,21 +84,38 @@ int second_pass(FILE *am_file, LabelTable *label_table, VirtualPC *vpc)
             {
                 content++; /* Skip spaces */
             }
+            if (strncmp(content, ".entry  ", 7) == 0)
+            {
+                char *ptr_content = content + 8;
+                err = is_valid_entry_label(content, label_table);
+                if (err != ERROR_SUCCESS)
+                {
+                    if (err == ERROR_DUPLICATE_ENTRY_LABEL)
+                    {
+                        print_warning(WARNING_REDUNDANT_ENTRY, line_number);
+                    }
+                    else
+                    {
+                        print_error(err, line_number);
+                        is_valid_file = FALSE;
+                    }
+                }
+                ptr_content[strcspn(ptr_content, "\r\n")] = '\0';
+                print_warning(WARNING_LABEL_BEFORE_ENTRY, line_number);
+
+                continue;
+            }
         }
         else
         {
             content = line; /* No colon found, content is the entire line */
         }
 
-        if (is_in_label)
-        {
-            is_in_label = FALSE;
-        }
+        content = advance_to_next_token(content);
         validate_labels_and_relative_addresses(content, label_table, line_number, &is_valid_file);
-
         /* Skip empty lines */
         if (content == NULL || *content == '\0')
-        {   
+        {
             continue;
         }
         /* Check for directives */
@@ -114,11 +130,18 @@ int second_pass(FILE *am_file, LabelTable *label_table, VirtualPC *vpc)
             err = is_valid_entry_label(content, label_table);
             if (err != ERROR_SUCCESS)
             {
-                print_error(err, line_number);
-                is_valid_file = FALSE;
+                if (err == ERROR_DUPLICATE_ENTRY_LABEL)
+                {
+                    print_warning(WARNING_REDUNDANT_ENTRY, line_number);
+                }
+                else
+                {
+                    print_error(err, line_number);
+                    is_valid_file = FALSE;
+                }
             }
+            continue;
         }
-        is_in_label = FALSE;
     }
 
     return is_valid_file;

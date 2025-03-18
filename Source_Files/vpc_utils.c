@@ -47,10 +47,10 @@ int process_data_or_string_directive(char *ptr, VirtualPC *vpc, int *storage_ful
 
             if (vpc->DC + vpc->IC < STORAGE_SIZE)
             {
-                vpc->storage[vpc->DC + vpc->IC].value = num & 0xFFFFFF;                                              /* Store only the lower 24 bits of 'num' */
-                sprintf(vpc->storage[vpc->DC + vpc->IC].encoded, "%d", num);                                         /* Store the number as a string */
-                vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0'; /* Ensure null-termination */
-                vpc->DC++;
+                vpc->storage[vpc->last_adress].value = num & 0xFFFFFF;                                              /* Store only the lower 24 bits of 'num' */
+                sprintf(vpc->storage[vpc->last_adress].encoded, "%d", num);                                         /* Store the number as a string */
+                vpc->storage[vpc->last_adress].encoded[sizeof(vpc->storage[vpc->last_adress].encoded) - 1] = '\0'; /* Ensure null-termination */
+                vpc->last_adress++;
             }
             else
             {
@@ -82,9 +82,9 @@ int process_data_or_string_directive(char *ptr, VirtualPC *vpc, int *storage_ful
             {
                 if (vpc->DC + vpc->IC < STORAGE_SIZE)
                 {
-                    vpc->storage[vpc->DC + vpc->IC].value = (int)(*ptr) & 0xFFFFFF; /* Store only the lower 24 bits of the character */
-                    sprintf(vpc->storage[vpc->DC + vpc->IC].encoded, "%c", *ptr);   /* Store the character as a string */
-                    vpc->DC++;
+                    vpc->storage[vpc->last_adress].value = (int)(*ptr) & 0xFFFFFF; /* Store only the lower 24 bits of the character */
+                    sprintf(vpc->storage[vpc->last_adress].encoded, "%c", *ptr);   /* Store the character as a string */
+                    vpc->last_adress++;
                 }
                 else
                 {
@@ -97,8 +97,8 @@ int process_data_or_string_directive(char *ptr, VirtualPC *vpc, int *storage_ful
 
             if (vpc->DC + vpc->IC < STORAGE_SIZE)
             {
-                vpc->storage[vpc->DC + vpc->IC].value = 0; /* Store null-terminator */
-                vpc->DC++;
+                vpc->storage[vpc->last_adress].value = 0; /* Store null-terminator */
+                vpc->last_adress++;
             }
             else
             {
@@ -213,12 +213,13 @@ int process_and_store_command(const char *line, VirtualPC *vpc, int *storage_ful
     }
 
     /* Store the words in the VirtualPC storage */
-    if (vpc->DC + vpc->IC < STORAGE_SIZE)
+    if (vpc->IC < STORAGE_SIZE)
     {
-        vpc->storage[vpc->DC + vpc->IC].value = first_word;
-        strncpy(vpc->storage[vpc->DC + vpc->IC].encoded, command, sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1); /* Store the command name that gave a word*/
-        vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0';
+        vpc->storage[vpc->IC].value = first_word;
+        strncpy(vpc->storage[vpc->IC].encoded, command, sizeof(vpc->storage[vpc->IC].encoded) - 1); /* Store the command name that gave a word*/
+        vpc->storage[vpc->IC].encoded[sizeof(vpc->storage[vpc->IC].encoded) - 1] = '\0';
         vpc->IC++;
+        vpc->last_adress++;
     }
     else
     {
@@ -227,12 +228,13 @@ int process_and_store_command(const char *line, VirtualPC *vpc, int *storage_ful
 
     if (param_flags[0])
     {
-        if (vpc->DC + vpc->IC < STORAGE_SIZE)
+        if (vpc->IC < STORAGE_SIZE)
         {
-            vpc->storage[vpc->DC + vpc->IC].value = second_word;
-            strncpy(vpc->storage[vpc->DC + vpc->IC].encoded, param1, sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1); /* Store the first parameter that gave a word */
-            vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0';
+            vpc->storage[vpc->IC].value = second_word;
+            strncpy(vpc->storage[vpc->IC].encoded, param1, sizeof(vpc->storage[vpc->IC].encoded) - 1); /* Store the first parameter that gave a word */
+            vpc->storage[vpc->IC].encoded[sizeof(vpc->storage[vpc->IC].encoded) - 1] = '\0';
             vpc->IC++;
+            vpc->last_adress++;
         }
         else
         {
@@ -241,12 +243,13 @@ int process_and_store_command(const char *line, VirtualPC *vpc, int *storage_ful
     }
     if (param_flags[1])
     {
-        if (vpc->DC + vpc->IC < STORAGE_SIZE)
+        if (vpc->IC < STORAGE_SIZE)
         {
-            vpc->storage[vpc->DC + vpc->IC].value = third_word;
-            strncpy(vpc->storage[vpc->DC + vpc->IC].encoded, param2, sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1); /* Store the second parameter that gave a word */
-            vpc->storage[vpc->DC + vpc->IC].encoded[sizeof(vpc->storage[vpc->DC + vpc->IC].encoded) - 1] = '\0';
+            vpc->storage[vpc->IC].value = third_word;
+            strncpy(vpc->storage[vpc->IC].encoded, param2, sizeof(vpc->storage[vpc->IC].encoded) - 1); /* Store the second parameter that gave a word */
+            vpc->storage[vpc->IC].encoded[sizeof(vpc->storage[vpc->IC].encoded) - 1] = '\0';
             vpc->IC++;
+            vpc->last_adress++;
         }
         else
         {

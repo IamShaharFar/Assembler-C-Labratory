@@ -24,9 +24,9 @@ void init_mcro_table(McroTable *table);
  * a list of reserved words. It trims any newline characters from the name before validation.
  *
  * @param name The name to validate.
- * @return TRUE (1) if the name is valid, FALSE (0) otherwise.
+ * @return ErrorCode ERROR_SUCCESS if the name is valid, otherwise an appropriate error code.
  */
-int is_valid_mcro_name(const char *name);
+ErrorCode is_valid_mcro_name(const char *name);
 
 /**
  * @brief Adds a new macro to the macro table.

@@ -25,6 +25,7 @@ typedef struct {
 /* Data structure for the virtual PC */
 typedef struct {
     Word storage[STORAGE_SIZE];  /* Storage with 2^21 words */
+    int last_adress;
     uint32_t IC;       /* Current address of command */
     uint32_t DC;       /* Counter for data storage */
 } VirtualPC;
@@ -34,7 +35,7 @@ typedef struct {
  * @brief Represents a macro with its name and content lines.
  */
 typedef struct {
-    char name[MAX_MCRO_NAME];
+    char name[MAX_MCRO_NAME_LENGTH];
     char content[100][MAX_LINE_LENGTH];
     int line_count;
 } Mcro;

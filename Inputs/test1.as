@@ -14,9 +14,9 @@ LOOP: prn #48
 .entry MAIN
  jmp &LOOP
  add L3, L3
-END: stop
 STR: .string "abcd"
+END: stop
 LIST: .data 6, -9
- .data -100
+      .data -100
 K: .data 31
 .extern L3 

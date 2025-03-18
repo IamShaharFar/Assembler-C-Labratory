@@ -245,6 +245,10 @@
          strcmp(command_name, "inc") == 0 || strcmp(command_name, "dec") == 0 ||
          strcmp(command_name, "red") == 0)
      {
+         if (is_non_existing_register(params[0]))
+         {
+            return ERROR_INVALID_REGISTER_FIRST_OPERAND;
+         }
          if (validate_register_operand(params[0]) || is_valid_label(params[0]) == ERROR_SUCCESS)
          {
              return ERROR_SUCCESS;
@@ -254,6 +258,14 @@
  
      if (strcmp(command_name, "mov") == 0 || strcmp(command_name, "add") == 0 || strcmp(command_name, "sub") == 0)
      {
+         if (is_non_existing_register(params[0]))
+         {
+            return ERROR_INVALID_REGISTER_FIRST_OPERAND;
+         }
+         if (is_non_existing_register(params[1]))
+         {
+            return ERROR_INVALID_REGISTER_SECOND_OPERAND;
+         }
          if (!(params[0][0] == '#' && strtol(params[0] + 1, NULL, 10) != 0) && is_valid_label(params[0]) != ERROR_SUCCESS && !validate_register_operand(params[0]))
          {
              return ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_FIRST_OPERAND;
@@ -267,6 +279,14 @@
  
      if (strcmp(command_name, "cmp") == 0)
      {
+         if (is_non_existing_register(params[0]))
+         {
+            return ERROR_INVALID_REGISTER_FIRST_OPERAND;
+         }
+         if (is_non_existing_register(params[1]))
+         {
+            return ERROR_INVALID_REGISTER_SECOND_OPERAND;
+         }
          if (!(params[0][0] == '#' && strtol(params[0] + 1, NULL, 10) != 0) && is_valid_label(params[0]) != ERROR_SUCCESS && !validate_register_operand(params[0]))
          {
              return ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_FIRST_OPERAND;
@@ -280,6 +300,10 @@
  
      if (strcmp(command_name, "lea") == 0)
      {
+         if (is_non_existing_register(params[1]))
+         {
+            return ERROR_INVALID_REGISTER_SECOND_OPERAND;
+         }
          if (is_valid_label(params[0]) != ERROR_SUCCESS)
          {
              return ERROR_INVALID_DIRECT_FIRST_OPERAND;
@@ -302,6 +326,10 @@
  
      if (strcmp(command_name, "prn") == 0)
      {
+         if (is_non_existing_register(params[0]))
+         {
+            return ERROR_INVALID_REGISTER_FIRST_OPERAND;
+         }
          if (params[0][0] == '#')
          {
              char *endptr;

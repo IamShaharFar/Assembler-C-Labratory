@@ -5,6 +5,8 @@
         "utils.h": "c",
         "globals.h": "c",
         "string.h": "c",
-        "structs.h": "c"
+        "structs.h": "c",
+        "preprocessor.h": "c",
+        "preprocessor_utils.h": "c"
     }
 }

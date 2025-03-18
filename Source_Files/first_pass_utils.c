@@ -52,7 +52,8 @@ ErrorCode is_data_storage_instruction(char *line)
             const char *start = line;
             int dot_count = 0;
             const char *ptr = start;
-            strtol(line, &endptr, 10); /* Attempt to convert the current token into a numeric value */
+            long num = strtol(line, &endptr, 10); /* Attempt to convert the current token into a numeric value */
+
             if (endptr == line)
             {
                 return ERROR_INVALID_DATA_NON_NUMERIC;
@@ -95,6 +96,11 @@ ErrorCode is_data_storage_instruction(char *line)
                 return ERROR_INVALID_DATA_REAL_NUMBER;
             }
 
+            if (num > INT_MAX || num < INT_MIN)
+            {
+                return ERROR_INVALID_DATA_TOO_LARGE; /* Custom error for out-of-bounds integer */
+            }
+
             /* valid number and check for trailing comma */
             line = endptr;
             line = advance_to_next_token(line);
@@ -126,7 +132,12 @@ ErrorCode is_data_storage_instruction(char *line)
         line += 7; /* move past the .string */
         line = advance_to_next_token(line);
 
-        if (*line != '"')
+        if (*line == '\0' || *line == '\n')
+        {
+            return ERROR_STRING_NO_VALUE;
+        }
+
+        else if (*line != '"')
         {
             return ERROR_INVALID_STRING_NO_QUOTE;
         }
@@ -169,6 +180,7 @@ ErrorCode is_data_storage_instruction(char *line)
 int count_data_or_string_elements(char *ptr)
 {
     int count = 0;
+    ptr = advance_to_next_token(ptr);
 
     /* Check for .data directive */
     if (strncmp(ptr, ".data", 5) == 0)
@@ -181,7 +193,7 @@ int count_data_or_string_elements(char *ptr)
         while (*ptr)
         {
             strtol(ptr, &ptr, 10); /* Convert number */
-            count++; /* Successfully parsed one numeric element, incrementing the count */
+            count++;               /* Successfully parsed one numeric element, incrementing the count */
             ptr = advance_to_next_token(ptr);
             if (*ptr == ',')
             {
@@ -204,6 +216,7 @@ int count_data_or_string_elements(char *ptr)
                 count++; /* Counting each character within the string quotes */
                 ptr++;
             }
+            count++; /* null termination is also counting*/
         }
     }
     return count;

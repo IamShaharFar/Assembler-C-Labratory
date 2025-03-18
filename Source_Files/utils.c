@@ -90,6 +90,20 @@ int validate_register_operand(const char *str)
 }
 
 /**
+ * @brief Checks if the given register is non-existing (invalid).
+ *
+ * This function checks whether the provided register name is one of the
+ * invalid registers ("r8", "r9").
+ *
+ * @param reg The register name to check.
+ * @return TRUE (1) if the register is invalid, FALSE (0) otherwise.
+ */
+int is_non_existing_register(const char *reg)
+{
+    return (strcmp(reg, "r8") == 0 || strcmp(reg, "r9") == 0);
+}
+
+/**
  * @brief Trims trailing newline, carriage return, space, and tab characters from a string.
  *
  * This function removes any trailing newline (`\n`), carriage return (`\r`), space (` `), and tab (`\t`)
@@ -157,6 +171,7 @@ void init_label_table(LabelTable *label_table)
 void init_virtual_pc(VirtualPC *vpc)
 {
     memset(vpc->storage, 0, sizeof(vpc->storage)); /* Initialize all storage to 0 */
+    vpc ->last_adress = 100;
     vpc->IC = 100;                                 /* Initialize IC to 100 */
     vpc->DC = 0;                                   /* Initialize DC to 0 */
 }

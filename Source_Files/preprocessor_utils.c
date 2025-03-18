@@ -33,25 +33,54 @@ void init_mcro_table(McroTable *table)
  * a list of reserved words. It trims any newline characters from the name before validation.
  *
  * @param name The name to validate.
- * @return TRUE (1) if the name is valid, FALSE (0) otherwise.
+ * @return ErrorCode ERROR_SUCCESS if the name is valid, otherwise an appropriate error code.
  */
-int is_valid_mcro_name(const char *name)
+ErrorCode is_valid_mcro_name(const char *name)
 {
     size_t i;
-    char clean_name[MAX_MCRO_NAME]; 
+    char clean_name[MAX_MCRO_NAME_LENGTH];
 
-    strncpy(clean_name, name, MAX_MCRO_NAME - 1); /* Copy the name to a new buffer */
-    clean_name[MAX_MCRO_NAME - 1] = '\0';
+    strncpy(clean_name, name, MAX_MCRO_NAME_LENGTH - 1); /* Copy the name to a new buffer */
+    clean_name[MAX_MCRO_NAME_LENGTH - 1] = '\0';
     trim_newline(clean_name); /* Remove newline characters */
 
-    for (i = 0; i < RESERVED_WORDS_COUNT; i++)
+    /* Label must start with an alphabetic character */
+    if (name == NULL || !isalpha(name[0]))
     {
-        if (strcmp(clean_name, reserved_words[i]) == 0)
+        return ERROR_MCRO_ILLEGAL_START;
+    }
+
+    /* Ensure all characters are alphanumeric or underscore */
+    for (i = 1; name[i] != '\0'; i++)
+    {
+        if (!isalnum(name[i]) && name[i] != '_')
         {
-            return FALSE; /* Name is a reserved word */
+            return ERROR_MCRO_ILLEGAL_CHAR;
         }
     }
-    return TRUE;
+
+    /* Check if label is a register name (e.g., r0-r7) */
+    if (validate_register_operand(name) == TRUE)
+    {
+        return ERROR_MCRO_IS_REGISTER;
+    }
+
+    /* Check if the label is a reserved word */
+    for (i = 0; i < RESERVED_WORDS_COUNT; i++)
+    {
+        if (strcmp(name, reserved_words[i]) == 0)
+        {
+            return ERROR_MCRO_RESERVED_NAME;
+        }
+    }
+
+    /* Check if the label length is within the allowed limit */
+    if (strlen(name) > MAX_MCRO_NAME_LENGTH)
+    {
+        return ERROR_MCRO_TOO_LONG;
+    }
+
+    return ERROR_SUCCESS;
 }
 
 /**
@@ -66,10 +95,13 @@ int is_valid_mcro_name(const char *name)
 ErrorCode add_mcro(McroTable *table, const char *name)
 {
     int i;
+    ErrorCode err;
 
-    if (!is_valid_mcro_name(name))
+    err = is_valid_mcro_name(name);
+
+    if (err != ERROR_SUCCESS)
     {
-        return ERROR_MCRO_ILLEGAL_NAME;
+        return err;
     }
 
     for (i = 0; i < table->count; i++)
@@ -86,8 +118,8 @@ ErrorCode add_mcro(McroTable *table, const char *name)
     }
 
     /* Add the macro to the table */
-    strncpy(table->mcros[table->count].name, name, MAX_MCRO_NAME - 1);
-    table->mcros[table->count].name[MAX_MCRO_NAME - 1] = '\0';
+    strncpy(table->mcros[table->count].name, name, MAX_MCRO_NAME_LENGTH - 1);
+    table->mcros[table->count].name[MAX_MCRO_NAME_LENGTH - 1] = '\0';
     table->mcros[table->count].line_count = 0;
     table->count++;
 
@@ -143,7 +175,7 @@ int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable
 {
     char line[MAX_LINE_LENGTH];
     char temp_line[MAX_LINE_LENGTH];
-    char clean_macro_name[MAX_MCRO_NAME];
+    char clean_macro_name[MAX_MCRO_NAME_LENGTH];
     char target_filename[MAX_FILENAME_LENGTH];
     char *token, *dot_position; /* Dot position for file extension */
     int i, j, is_macro_call, in_macro_def = 0;
@@ -155,7 +187,8 @@ int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable
     dot_position = strrchr(target_filename, '.'); /* Find the last dot in the filename */
 
     /* Check if the file extension is .as */
-    if (!dot_position || strcmp(dot_position, ".as") != 0) {
+    if (!dot_position || strcmp(dot_position, ".as") != 0)
+    {
         print_error_no_line(ERROR_MISSING_AS_FILE);
         return FALSE;
     }
@@ -163,7 +196,8 @@ int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable
 
     /* Open target file for writing */
     target_fp = fopen(target_filename, "w");
-    if (!target_fp) {
+    if (!target_fp)
+    {
         print_error_no_line(ERROR_FILE_WRITE);
         return FALSE;
     }
@@ -177,39 +211,46 @@ int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable
         temp_line[MAX_LINE_LENGTH - 1] = '\0';
 
         token = strtok(temp_line, " \t\n\r"); /* Get the first token */
-        if (!token || token[0] == ';') {
-            continue;  /* Skip empty lines and comment lines */
+        if (!token || token[0] == ';')
+        {
+            continue; /* Skip empty lines and comment lines */
         }
 
         /* Check if currently inside a macro definition */
-        if (in_macro_def) {
-            if (strcmp(token, "mcroend") == 0) {
+        if (in_macro_def)
+        {
+            if (strcmp(token, "mcroend") == 0)
+            {
                 in_macro_def = 0; /* End of macro definition */
             }
             continue;
         }
 
         /* Check if the line is a macro declaration */
-        if (strcmp(token, "mcro") == 0) {
+        if (strcmp(token, "mcro") == 0)
+        {
             in_macro_def = 1;
             continue;
         }
 
         /* Check if the line calls a macro */
         is_macro_call = 0;
-        trim_newline(token); 
+        trim_newline(token);
 
         /* Check if the token is a macro name */
-        for (i = 0; i < mcro_table->count; i++) {
-            strncpy(clean_macro_name, mcro_table->mcros[i].name, MAX_MCRO_NAME - 1);
-            clean_macro_name[MAX_MCRO_NAME - 1] = '\0';
+        for (i = 0; i < mcro_table->count; i++)
+        {
+            strncpy(clean_macro_name, mcro_table->mcros[i].name, MAX_MCRO_NAME_LENGTH - 1);
+            clean_macro_name[MAX_MCRO_NAME_LENGTH - 1] = '\0';
             trim_newline(clean_macro_name);
 
             /* Check if the token is a macro name */
-            if (strcmp(token, clean_macro_name) == 0) {
+            if (strcmp(token, clean_macro_name) == 0)
+            {
                 /* Expand macro correctly */
-                for (j = 0; j < mcro_table->mcros[i].line_count; j++) {
-                    fprintf(target_fp, "%s\n", mcro_table->mcros[i].content[j]);  
+                for (j = 0; j < mcro_table->mcros[i].line_count; j++)
+                {
+                    fprintf(target_fp, "%s\n", mcro_table->mcros[i].content[j]);
                 }
                 is_macro_call = 1;
                 break;
@@ -217,11 +258,13 @@ int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable
         }
 
         /* Only write the line if it's not a macro call */
-        if (!is_macro_call) {
+        if (!is_macro_call)
+        {
             char *semicolon_pos = strchr(line, ';');
 
             /* Remove comments */
-            if (semicolon_pos) {
+            if (semicolon_pos)
+            {
                 *semicolon_pos = '\0';
                 strcat(line, "\n"); /* Add newline character */
             }
@@ -230,7 +273,7 @@ int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable
     }
 
     /* Close and flush the target file */
-    fflush(target_fp);  
+    fflush(target_fp);
     fclose(target_fp);
     return TRUE;
 }

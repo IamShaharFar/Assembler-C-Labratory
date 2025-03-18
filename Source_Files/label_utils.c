@@ -55,7 +55,7 @@ ErrorCode is_valid_label(const char *label)
     {
         if (strcmp(label, reserved_words[i]) == 0)
         {
-            return ERRPR_LABEL_IS_RESERVED_WORD;
+            return ERROR_LABEL_IS_RESERVED_WORD;
         }
     }
 
@@ -105,12 +105,17 @@ ErrorCode is_valid_extern_label(const char *line)
     char label[MAX_LINE_LENGTH];
     char temp[MAX_LINE_LENGTH];
     char *ptr;
+    ErrorCode err;
 
     strncpy(temp, line, MAX_LINE_LENGTH - 1);
     temp[MAX_LINE_LENGTH - 1] = '\0'; /* Ensure null termination */
 
     /* Ensure the line starts with ".extern" */
     ptr = advance_to_next_token(temp);
+    if (strncmp(ptr, ".entry ", 7) == 0)
+    {
+        return ERROR_ENTRY_INSTEAD_OF_EXTERN;
+    }
     if (strncmp(ptr, ".extern", 7) != 0)
     {
         return ERROR_NOT_EXTERN_LINE;
@@ -123,7 +128,20 @@ ErrorCode is_valid_extern_label(const char *line)
     /* Extract label name */
     if (sscanf(ptr, "%s", label) != 1)
     {
-        return ERROR_ILLEGAL_LABEL; /* No valid label found */
+        return ERROR_EXTERN_MISSING_LABEL; /* No valid label found */
+    }
+    ptr += strlen(label);
+    ptr = advance_to_next_token(ptr);
+
+    if (*ptr != '\0' && *ptr != ';') 
+    {
+        return ERROR_EXTERN_EXTRA_TEXT;
+    }
+
+    err = is_valid_label(label);
+    if (err != ERROR_SUCCESS)
+    {
+        return err;
     }
 
     return ERROR_SUCCESS;
@@ -143,6 +161,8 @@ ErrorCode is_valid_entry_label(const char *line, LabelTable *label_table)
     char label[MAX_LINE_LENGTH];
     char *ptr;
     int i;
+    ErrorCode err;
+
 
     /* Advance to first non-space character */
     ptr = advance_to_next_token((char *)line);
@@ -154,8 +174,22 @@ ErrorCode is_valid_entry_label(const char *line, LabelTable *label_table)
     /* Extract the label */
     if (sscanf(ptr, "%s", label) != 1)
     {
-        return ERROR_ILLEGAL_LABEL; /* No valid label found */
+        return ERROR_ENTRY_MISSING_LABEL; /* No valid label found */
     }
+    ptr += strlen(label);
+    ptr = advance_to_next_token(ptr);
+
+    if (*ptr != '\0' && *ptr != ';') 
+    {
+        return ERROR_ENTRY_EXTRA_TEXT;
+    }
+
+    err = is_valid_label(label);
+    if (err != ERROR_SUCCESS)
+    {
+        return err;
+    }
+
 
     /* Check if the label exists in the label table */
     for (i = 0; i < label_table->count; i++)
@@ -171,6 +205,10 @@ ErrorCode is_valid_entry_label(const char *line, LabelTable *label_table)
             if (strstr(label_table->labels[i].type, "entry") == NULL)
             {
                 strncat(label_table->labels[i].type, ", entry", sizeof(label_table->labels[i].type) - strlen(label_table->labels[i].type) - 1);
+            }
+            else
+            {
+                return ERROR_DUPLICATE_ENTRY_LABEL;
             }
             return ERROR_SUCCESS; /* Valid entry directive */
         }
@@ -298,9 +336,13 @@ ErrorCode add_label(const char *name, int line_number, const char *line, const c
     label_table->labels[label_table->count].type[sizeof(label_table->labels[label_table->count].type) - 1] = '\0';
 
     /* Assign the given address to the label */
-    if (strcmp(type, "external") != 0)
+    if (strcmp(type, "code") == 0)
     {
-        label_table->labels[label_table->count].address = vpc->IC + vpc->DC;
+        label_table->labels[label_table->count].address = vpc->IC;
+    }
+    else if(strcmp(type, "data") == 0)
+    {
+        label_table->labels[label_table->count].address = vpc->DC;
     }
     else
     {

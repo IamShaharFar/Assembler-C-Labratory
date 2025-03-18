@@ -1,3 +1,1 @@
- END: stop
- bne END
-  bne &END
+add r1,r8

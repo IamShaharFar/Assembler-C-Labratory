@@ -1,61 +1,63 @@
-/* preprocessor.c */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include "../Header_Files/preprocessor.h"
-#include "../Header_Files/globals.h"
-#include "../Header_Files/errors.h"
-#include "../Header_Files/utils.h"
-#include "../Header_Files/preprocessor_utils.h"
+/*
+ * File: preprocessor.c
+ * --------------------
+ * Handles preprocessing of assembly files, including macro expansion,
+ * path resolution, and file existence checks.
+ */
+
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <ctype.h>
+ #include "../Header_Files/preprocessor.h"       /* process_file() */
+ #include "../Header_Files/globals.h"            /* MAX_FILENAME_LENGTH, TRUE, FALSE */
+ #include "../Header_Files/errors.h"             /* print_error_no_line() */
+ #include "../Header_Files/utils.h"              /* Utility functions */
+ #include "../Header_Files/preprocessor_utils.h" /* Macro handling functions */
+ 
 
 /**
- * @brief Checks if a given file exists.
- *
- * This function attempts to open the specified file in read mode to check if it exists.
- *
+ * @brief Checks if a given file exists by attempting to open it.
+ * 
  * @param filename The name of the file to check.
  * @return TRUE (1) if the file exists, FALSE (0) otherwise.
  */
 static int file_exists(const char *filename)
 {
-    FILE *file = fopen(filename, "r"); /* Try to open the file in read mode */
-    if (file) /* File exists */
+    FILE *file = fopen(filename, "r");
+    if (file) 
     {
-        fclose(file); /* Close the file */
+        fclose(file);
         return TRUE;
     }
     return FALSE;
 }
 
 /**
- * @brief Checks if a .as file exists for the given filepath.
- *
- * This function constructs the filename by appending ".as" to the given filepath
- * and checks if the resulting file exists.
- *
+ * @brief Checks if an assembly (.as) file exists for the given filepath.
+ * 
  * @param filepath Base filepath.
- * @return TRUE (1) if the .as file exists, FALSE (0) otherwise.
+ * @return TRUE (1) if the file exists, FALSE (0) otherwise.
  */
 static int check_as_file_exists(const char *filepath)
 {
     char filename[MAX_FILENAME_LENGTH];
-    sprintf(filename, "%s.as", filepath); /* Append .as extension to the filename */
-    return file_exists(filename); /* Check if the file exists */
+    sprintf(filename, "%s.as", filepath); /* Append .as extension */
+    return file_exists(filename);
 }
 
 /**
  * @brief Constructs the full path of the source .as file.
- *
- * This function constructs the full path of the source .as file by appending ".as" to the given filepath
- * if it does not already have the ".as" extension. The caller is responsible for freeing the allocated memory.
- *
+ * 
+ * Ensures the given filepath has a .as extension, appending it if necessary.
+ * Caller must free allocated memory.
+ * 
  * @param filepath Base filepath.
- * @return Pointer to the full source path string. Returns NULL if memory allocation fails.
+ * @return Pointer to allocated string containing full path or NULL on failure.
  */
 static char *get_full_source_path(const char *filepath)
 {
-    char *full_path; 
+    char *full_path;
     size_t len = strlen(filepath); /* Get the length of the filepath */
 
     full_path = (char *)malloc(MAX_FILENAME_LENGTH); /* Allocate memory for the full path */
@@ -94,7 +96,7 @@ static char *get_directory_path(const char *filepath)
 {
     char *dir_path;
     const char *last_slash; /* Pointer to the last occurrence of '/' in the filepath */
-    size_t dir_len; /* Length of the directory path */
+    size_t dir_len;         /* Length of the directory path */
 
     /* Find last occurrence of '/' */
     last_slash = strrchr(filepath, '/');
@@ -112,7 +114,7 @@ static char *get_directory_path(const char *filepath)
     }
 
     dir_len = last_slash - filepath; /* Calculate the length of the directory path */
-    dir_path = (char *)malloc(dir_len + 1); 
+    dir_path = (char *)malloc(dir_len + 1);
 
     /* Check if memory allocation failed */
     if (!dir_path)
@@ -142,19 +144,18 @@ static char *get_directory_path(const char *filepath)
 int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
 {
     char *line = NULL, *token, *ptr;
-    char*temp_line; /* Temporary line to store the line content */
-    size_t buffer_size = MAX_LINE_LENGTH; 
+    char *temp_line = NULL, *extra_text;
+    size_t buffer_size = MAX_LINE_LENGTH;
     int in_mcro = FALSE, line_number = 0;
     ErrorCode error;
     int ch, pos, is_valid = TRUE;
 
-    line = (char *)malloc(buffer_size); /* Allocate memory for the line */
-
+    /* Allocate memory for the line */
+    line = (char *)malloc(buffer_size);
     if (!line)
     {
         print_error_no_line(ERROR_MEMORY_ALLOCATION);
-        is_valid = FALSE;
-        return is_valid;
+        return FALSE;
     }
 
     /* Read the file line by line */
@@ -162,30 +163,32 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
     {
         pos = 0;
 
-        /* Read until the end of the line or the end of the file */
+        /* Read characters until end of line or file */
         while ((ch = fgetc(fp)) != EOF && ch != '\n')
         {
-            if (pos >= buffer_size - 1) /* Check if the line exceeds the buffer size */
+            if (pos >= buffer_size - 1)
             {
+                char *new_line;
                 buffer_size *= 2;
-                line = (char *)realloc(line, buffer_size); 
-                if (!line)
+                new_line = (char *)realloc(line, buffer_size);
+                if (!new_line)
                 {
                     print_error_no_line(ERROR_MEMORY_ALLOCATION);
-                    is_valid = FALSE;
-                    return is_valid;
+                    free(line);
+                    return FALSE;
                 }
+                line = new_line;
             }
-            line[pos++] = (char)ch; /* Store the character in the line */
+            line[pos++] = (char)ch;
         }
         line[pos] = '\0';
 
-        /* Check if the line is empty */
-        if (pos == 0 && ch == EOF) 
+        /* Check if line is empty */
+        if (pos == 0 && ch == EOF)
             break;
-        
+
         line_number++;
-        
+
         /* Check if the line exceeds the maximum allowed length */
         if (pos >= MAX_LINE_LENGTH)
         {
@@ -194,115 +197,112 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
             continue;
         }
 
-        temp_line = (char *)malloc(strlen(line) + 1); /* Allocate memory for the temporary line */
-        
+        /* Allocate memory for temp_line */
+        free(temp_line); /* Ensure no memory leak before reallocation */
+        temp_line = (char *)malloc(strlen(line) + 1);
         if (!temp_line)
         {
             print_error_no_line(ERROR_MEMORY_ALLOCATION);
             free(line);
-            is_valid = FALSE;
-            return is_valid;
+            return FALSE;
         }
 
-        strcpy(temp_line, line); /* Copy the line to the temporary line */
+        strcpy(temp_line, line);
 
-        if (!temp_line)
-        {
-            print_error_no_line(ERROR_MEMORY_ALLOCATION);
-            free(line);
-            is_valid = FALSE;
-            return is_valid;
-        }
-
-
-        /* Tokenize the line to get the first token, using " \t\n" as delimiters 
-        ** to handle spaces, tabs, and newlines */
-        token = strtok(temp_line, " \t\n"); 
+        /* Tokenize the line */
+        token = strtok(temp_line, " \t\n");
         if (!token)
         {
-            free(line);
-            free(temp_line);
-            continue;
+            continue; /* No need to free here, temp_line will be freed at the next loop iteration */
         }
 
-        token[strcspn(token, "\r\n")] = 0; /* Remove newline characters from the token */
+        token[strcspn(token, "\r\n")] = 0; /* Remove newline characters */
 
-        if (strcmp(token, "mcroend") == 0)
+        /* Handle macro end */
+        if (strncmp(token, "mcroend", 7) == 0) /* Check first 7 characters */
         {
-            in_mcro = FALSE; 
-            free(line);
-            free(temp_line);
-            continue;
+            /* Find the next non-space character after "mcroend" */
+            char *next_char = advance_to_next_token(line) + 7;
+            next_char = advance_to_next_token(next_char);
+        
+            /* Ensure next character is either end of string ('\0') or a comment (';') */
+            if (*next_char == '\0' || *next_char == ';')
+            {
+                in_mcro = FALSE;
+                continue;
+            }
+            else
+            {
+                print_error(ERROR_EXTRA_TEXT_AFTER_COMMAND, line_number);
+                is_valid = FALSE;
+                continue;
+            }
         }
-
+        
+        /* Handle macro definition */
         if (strcmp(token, "mcro") == 0)
         {
-            /* Retrieve the next token from the string, using space, tab,
-            ** or newline as delimiters, to get the macro name */
-            token = strtok(NULL, " \t\n"); 
+            in_mcro = TRUE;
+            token = strtok(NULL, " \t\n");
             if (!token)
             {
                 print_error(ERROR_MCRO_NO_NAME, line_number);
-                free(line);
-                free(temp_line);
+                is_valid = FALSE;
                 continue;
             }
-            token[strcspn(token, "\r\n")] = '\0'; /* Remove newline characters from the token */
+            token[strcspn(token, "\r\n")] = '\0';
+
+            /* Check for unexpected text after macro name */
+            extra_text = strtok(NULL, " \t\n");
+            if (extra_text && extra_text[0] != ';') /* Only allow comments after */
+            {
+                print_error(ERROR_MCRO_UNEXPECTED_TEXT, line_number);
+                is_valid = FALSE;
+                continue;
+            }
 
             error = add_mcro(mcro_table, token);
+            if (error != ERROR_SUCCESS && error != ERROR_MEMORY_ALLOCATION)
+            {
+                print_error(error, line_number);
+                is_valid = FALSE;
+                continue;
+            }
 
-            /* Check if the macro name is invalid or a duplicate */
-            if (error == ERROR_MCRO_ILLEGAL_NAME || error == ERROR_MCRO_DUPLICATE)
+            if (error == ERROR_MEMORY_ALLOCATION)
             {
                 print_error(error, line_number);
                 free(line);
                 free(temp_line);
-                is_valid = FALSE;
+                return FALSE;
             }
 
-            /* Check if memory allocation failed */
-            else if (error != ERROR_SUCCESS)
-            {
-                print_error(error, line_number);
-                free(line);
-                free(temp_line);
-                is_valid = FALSE;
-                return is_valid;
-            }
-
-            in_mcro = TRUE;
-            free(line);
-            free(temp_line);
             continue;
         }
 
-        /* Check if currently inside a macro definition */
+        /* Store macro body */
         if (in_mcro)
         {
             ptr = line;
-
-            /* Skip leading spaces and tabs */
-            while (*ptr == ' ' || *ptr == '\t')
+            while (*ptr == ' ' || *ptr == '\t') /* Skip leading spaces */
                 ptr++;
 
             error = add_line_to_mcro(mcro_table, ptr);
-
-            /* Check if memory allocation failed */
             if (error != ERROR_SUCCESS)
             {
                 print_error(error, line_number);
-                free(line);
-                free(temp_line);
                 is_valid = FALSE;
-                return is_valid;
+                continue;
             }
         }
-
-        free(temp_line); /* Free the temporary line */
     }
 
+    /* Free allocated memory */
     free(line);
-    create_am_file(fp, file_path, mcro_table); /* Create the .am file */
+    free(temp_line);
+    
+    /* Create .am file */
+    create_am_file(fp, file_path, mcro_table);
     return is_valid;
 }
 
@@ -320,9 +320,9 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
 int process_file(const char *filepath, McroTable *mcro_table)
 {
     char *full_source_path; /* Full path of the source file */
-    char *dir_path; /* Directory path of the source file */
+    char *dir_path;         /* Directory path of the source file */
     FILE *fp;
-    int result; 
+    int result;
 
     /* Check if the filename is too long */
     if (strlen(filepath) > MAX_FILENAME_LENGTH - 4)
