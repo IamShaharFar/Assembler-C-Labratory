@@ -88,6 +88,10 @@ int main(int argc, char *argv[])
             {
                 success = FALSE;
             }
+            if (success)
+            {
+                fill_addresses_words(am_file, &label_table, vpc);
+            }
             fclose(am_file);
         }
 
@@ -97,11 +101,11 @@ int main(int argc, char *argv[])
             print_error_no_line(ERROR_ASSEMBLY_FAILED);
         }
 
-        if (resolve_and_update_labels(vpc, &label_table) == FALSE)
+        /* if (resolve_and_update_labels(vpc, &label_table) == FALSE)
         {
             success = FALSE;
-        }
-        else if (success) /* only generate output files if no errors occurred */
+        } */
+        if (success) /* only generate output files if no errors occurred */
         {
             generate_object_file(vpc, argv[i]);
             generate_entry_file(&label_table, argv[i]);

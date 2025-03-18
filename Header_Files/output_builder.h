@@ -46,4 +46,5 @@ void generate_entry_file(const LabelTable *label_table, const char *filename);
  */
 void generate_externals_file(const VirtualPC *vpc, const LabelTable *label_table, const char *filename);
 
+void fill_addresses_words(FILE *am_file, LabelTable *label_table, VirtualPC *vpc);
 #endif /* OUTPUT_BUILDER_H */

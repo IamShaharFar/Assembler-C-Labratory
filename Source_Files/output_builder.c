@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "../Header_Files/output_builder.h"
 #include "../Header_Files/structs.h"
 #include "../Header_Files/globals.h"
 #include "../Header_Files/structs.h"
-
+#include "../Header_Files/utils.h"
+#include "../Header_Files/first_pass_utils.h"
+#include "../Header_Files/label_utils.h"
+#include "../Header_Files/command_utils.h"
 
 /**
  * @brief Writes the assembled machine code into a .ob file.
@@ -19,7 +23,7 @@
  */
 void generate_object_file(const VirtualPC *vpc, const char *filename)
 {
-    char ob_filename[MAX_FILENAME_LENGTH + 4];  /* +4 for ".ob\0" */
+    char ob_filename[MAX_FILENAME_LENGTH + 4]; /* +4 for ".ob\0" */
     FILE *ob_file;
     uint32_t start_addr = 100;
     uint32_t end_addr = vpc->IC + vpc->DC;
@@ -43,7 +47,7 @@ void generate_object_file(const VirtualPC *vpc, const char *filename)
     for (i = start_addr; i < end_addr; i++)
     {
         fprintf(ob_file, "%07d %06x\n", i, vpc->storage[i].value & 0xFFFFFF);
-/* Ensure 24-bit representation */
+        /* Ensure 24-bit representation */
     }
 
     fclose(ob_file);
@@ -154,7 +158,6 @@ void generate_externals_file(const VirtualPC *vpc, const LabelTable *label_table
 
     /* Scan through VirtualPC storage */
 
-
     for (i = start_addr; i < end_addr; i++)
     {
         const char *encoded_str = vpc->storage[i].encoded;
@@ -184,4 +187,154 @@ void generate_externals_file(const VirtualPC *vpc, const LabelTable *label_table
 
     fclose(ext_file);
     printf("Externals file '%s' generated successfully.\n", ext_filename);
+}
+
+void fill_addresses_words(FILE *am_file, LabelTable *label_table, VirtualPC *vpc)
+{
+    /* Variable Declarations */
+    char line[MAX_LINE_LENGTH];
+    char params[2][MAX_LINE_LENGTH], command_name[10];
+    char *ptr, *ptr_scan, *colon_pos;
+    int param_count = 0;
+    int address = 100; /* Initial address */
+    int i, j;
+    int inside_string = FALSE;
+    int label_address = 0, value = 0;
+
+    rewind(am_file); /* Ensure reading from the beginning */
+
+    while (fgets(line, MAX_LINE_LENGTH, am_file))
+    {
+        memset(params, 0, sizeof(params));
+        param_count = 0;
+        colon_pos = NULL;
+        inside_string = FALSE;
+        
+        ptr = advance_to_next_token(line); /* Skip leading spaces */
+        ptr_scan = ptr;
+
+        /* Scan through the line to find a colon that is not inside a string */
+        while (*ptr_scan)
+        {
+            if (*ptr_scan == '"')
+            {
+                inside_string = !inside_string; /* Toggle string state */
+            }
+            else if (*ptr_scan == ':' && !inside_string)
+            {
+                colon_pos = ptr_scan; /* Valid colon found */
+                break;
+            }
+            ptr_scan++;
+        }
+
+        /* If a valid colon was found, move past it */
+        if (colon_pos)
+        {
+            ptr = advance_to_next_token(colon_pos + 1);
+        }
+
+        /* Process .data or .string directives */
+        if (strncmp(ptr, ".data", 5) == 0 && isspace((unsigned char)ptr[5]))
+        {
+            address += count_data_or_string_elements(ptr);
+        }
+        else if (strncmp(ptr, ".string", 7) == 0 && isspace((unsigned char)ptr[7]))
+        {
+            address += count_data_or_string_elements(ptr);
+        }
+        else
+        {
+            sscanf(ptr, "%s", command_name);
+            if (is_valid_command_name(command_name))
+            {
+                /* printf("line: '%s", ptr); */
+                address += 1;
+                ptr = advance_past_token(ptr);
+                ptr = advance_to_next_token(ptr);
+                if (*ptr != '\n' && *ptr != '\0' && *ptr != '\r')
+                {
+                    i = 0;
+                    while (*ptr && !isspace((unsigned char)*ptr) && *ptr != ',')
+                    {
+                        params[param_count][i++] = *ptr++;
+                    }
+                    params[param_count][i] = '\0';
+                    i = 0;
+                    param_count++;
+
+                    if (*ptr != '\n' && *ptr != '\0' && *ptr != '\r')
+                    {
+                        ptr++;
+                        ptr = advance_to_next_token(ptr);
+                        while (*ptr && !isspace((unsigned char)*ptr) && *ptr != ',')
+                        {
+                            params[param_count][i++] = *ptr++;
+                        }
+                        params[param_count][i] = '\0';
+                        param_count++;
+                    }
+                }
+
+                for (i = 0; i < param_count; i++)
+                {
+                    int32_t word_value = vpc->storage[address].value;
+                    label_address = 0;
+                    value = 0;
+                    
+                    if (params[i][0] == '&')
+                    {
+                        printf("param %s\n", params[i]); 
+                        for (j = 0; j < label_table->count; j++)
+                        {
+                            if (strcmp(params[i] + 1, label_table->labels[j].name) == 0)
+                            {
+                                label_address = label_table->labels[j].address;
+                                value = label_address - (address - 1); /* Calculate relative address (-1 to reach command address) */
+
+                                word_value &= ~(0x1FFFFF << 3);        /* Clear bits 3-23 */
+                                word_value |= (value & 0x1FFFFF) << 3; /* Set bits 3-23 with the value*/
+                                vpc->storage[address].value = word_value;
+                            }
+                        }
+                    }
+
+                    else if (label_exists(params[i], label_table))
+                    {
+                        for (j = 0; j < label_table->count; j++)
+                        {
+                            if (strcmp(params[i], label_table->labels[j].name) == 0)
+                            {
+                                printf("param %s\n", params[i]); 
+                                label_address = label_table->labels[j].address;
+                                value = label_address;
+
+                                vpc->storage[address].value = 0;                        /* Clear the value */
+                                vpc->storage[address].value |= (value & 0x1FFFFF) << 3; /* Set bits 3-23 with the value*/
+                                vpc->storage[address].value &= ~(1 << 2);               /* Set bit 2 to 0 */
+
+                                /* Set the E/R bits based on the label type */
+                                if (strcmp(label_table->labels[j].type, "external") == 0)
+                                {
+                                    vpc->storage[address].value |= (1 << 0);  /* Set bit 0 to 1 */
+                                    vpc->storage[address].value &= ~(1 << 1); /* Set bit 1 to 0 */
+                                }
+                                else
+                                {
+                                    vpc->storage[address].value &= ~(1 << 0); /* Set bit 0 to 0 */
+                                    vpc->storage[address].value |= (1 << 1);  /* Set bit 1 to 1 */
+                                }
+                            }
+                        }
+                    }
+                    if (!validate_register_operand(params[i]))
+                    {
+                        address++;
+                    }
+                }
+
+
+            }
+        }
+    }
 }

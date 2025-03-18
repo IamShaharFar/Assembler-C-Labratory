@@ -6,6 +6,7 @@
 #include "../Header_Files/command_utils.h"
 #include "../Header_Files/structs.h"
 #include "../Header_Files/vpc_utils.h"
+#include "../Header_Files/first_pass_utils.h"
 #include "../Header_Files/globals.h" /* Ensure it contains necessary constants */
 #include "../Header_Files/utils.h"   /* Ensure it has advance_to_next_token */
 #include "../Header_Files/errors.h"  /* Ensure it has ERROR */
@@ -122,7 +123,7 @@ int second_pass(FILE *am_file, LabelTable *label_table, VirtualPC *vpc)
         if (strncmp(content, ".extern", 7) == 0 ||
             strncmp(content, ".string", 7) == 0 ||
             strncmp(content, ".data", 5) == 0)
-        {
+        { 
             continue; /* Skip these lines */
         }
         else if (strncmp(content, ".entry", 6) == 0 && isspace((unsigned char)content[6]))

@@ -9,23 +9,24 @@
 #include "../Header_Files/utils.h"
 
 /**
- * @brief Initializes the macro table to an empty state.
+ * @brief Initializes the macro table.
  *
- * This function initializes the macro table by setting the count to zero and
- * initializing the line count of each macro entry to zero.
+ * Resets the macro table by setting its count to zero and initializing 
+ * each macro entry’s line count to zero.
  *
- * @param table Pointer to the macro table to initialize.
+ * @param table Pointer to the macro table.
  */
 void init_mcro_table(McroTable *table)
 {
     int i;
     table->count = 0;
+
+    /* reset all macro entries */
     for (i = 0; i < MAX_MCROS; i++)
     {
         table->mcros[i].line_count = 0;
     }
 }
-
 /**
  * @brief Validates if a given name is a legal macro name.
  *
