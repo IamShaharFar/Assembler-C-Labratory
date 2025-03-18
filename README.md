@@ -49,14 +49,14 @@ To compile the assembler, use the provided Makefile:
 make
 ```
 ### Running the Assembler
-![Assembler Input](Images/test1.as.png)
+<img src="Images/test1.as.png" alt="Assembler Input" width="150">
 
 To run the assembler on an assembly source file, use the following command:
 
 This will generate the corresponding .ob, .ent, and .ext files in the same directory as the source files.
 
 ### Output Files
-![Assembler Output](Images/test1.as.png)
+<img src="Images/test1.ob.png" alt="Assembler Output" width="150">
 .ob: Object file containing the machine code.
 .ent: Entry file containing entry labels and their addresses.
 .ext: Externals file containing external labels and their usage addresses.
