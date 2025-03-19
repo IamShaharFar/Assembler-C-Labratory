@@ -30,6 +30,7 @@ The `Source_Files/` directory contains the core implementation of the assembler.
 ### First and Second Pass Processing
 - **first_pass.c**
   - Parses the assembly file, processes labels, directives, command instructions and detect errors.
+  - Utilizes `label_utils.c` for label validation and storing and `command_utils.c` for command validation and processing.
   - **Key Functions:**
     - `first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTable *mcro_table)`: Executes the first pass over the assembly file.
 - **first_pass_utils.c**
