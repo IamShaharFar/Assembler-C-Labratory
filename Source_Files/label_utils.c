@@ -217,65 +217,6 @@ ErrorCode is_valid_entry_label(const char *line, LabelTable *label_table)
     return ERROR_UNDEFINED_LABEL; /* Label not found in the loop */
 }
 
-/*
- * Function: is_valid_entry_or_extern_line
- * ---------------------------------------
- * Checks if a line is a valid ".entry" or ".extern" directive.
- *
- * line: The input line to validate.
- *
- * returns: TRUE if the line is valid, FALSE otherwise.
- */
-int is_valid_entry_or_extern_line(char *line)
-{
-    char *token;
-    char label[MAX_LINE_LENGTH];
-
-    /* Skip leading spaces */
-    line = advance_to_next_token(line);
-    if (!line || *line == '\0')
-    {
-        return FALSE;
-    }
-
-    /* Check if it starts with ".entry" or ".extern" */
-    if (strncmp(line, ".entry ", 7) == 0)
-    {
-        token = line + 7;
-    }
-    else if (strncmp(line, ".extern ", 8) == 0)
-    {
-        token = line + 8;
-    }
-    else
-    {
-        return FALSE;
-    }
-
-    /* Skip spaces after directive */
-    token = advance_to_next_token(token);
-    if (!token || *token == '\0')
-    {
-        return FALSE; /* No label provided */
-    }
-
-    /* Validate label format */
-    if (sscanf(token, "%s", label) != 1)
-    {
-        return FALSE;
-    }
-    if (is_valid_label(label) != ERROR_SUCCESS)
-    {
-        return FALSE;
-    }
-
-    /* Ensure there is no extra text after label */
-    token += strlen(label);
-    token = advance_to_next_token(token);
-
-    return (*token == '\0') ? TRUE : FALSE;
-}
-
 /**
  * @brief Adds a new label to the label table.
  *

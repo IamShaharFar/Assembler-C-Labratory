@@ -55,17 +55,6 @@ ErrorCode is_valid_label(const char *label);
  * @return ERROR_SUCCESS if the label exists, otherwise returns an appropriate error code.
  */
 ErrorCode is_valid_entry_label(const char *line, LabelTable *label_table);
- 
- /*
-  * Function: is_valid_entry_or_extern_line
-  * ---------------------------------------
-  * Checks if a line is a valid ".entry" or ".extern" directive.
-  *
-  * line: The input line to validate.
-  *
-  * returns: TRUE if the line is valid, FALSE otherwise.
-  */
- int is_valid_entry_or_extern_line(char *line);
 
  /**
  * @brief Adds a new label to the label table.

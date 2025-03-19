@@ -16,7 +16,6 @@
 #include "../Header_Files/globals.h"            /* MAX_FILENAME_LENGTH, TRUE, FALSE */
 #include "../Header_Files/structs.h"            /* VirtualPC, LabelTable, McroTable */
 #include "../Header_Files/utils.h"              /* init_virtual_pc(), init_label_table(), init_mcro_table() */
-#include "../Header_Files/vpc_utils.h"          /* resolve_and_update_labels() */
 #include "../Header_Files/output_builder.h"     /* generate_object_file(), generate_entry_file(), generate_externals_file() */
 
 /* prototype */
@@ -100,12 +99,7 @@ int main(int argc, char *argv[])
         {
             print_error_no_line(ERROR_ASSEMBLY_FAILED);
         }
-
-        /* if (resolve_and_update_labels(vpc, &label_table) == FALSE)
-        {
-            success = FALSE;
-        } */
-        if (success) /* only generate output files if no errors occurred */
+        else /* only generate output files if no errors occurred */
         {
             generate_object_file(vpc, argv[i]);
             generate_entry_file(&label_table, argv[i]);

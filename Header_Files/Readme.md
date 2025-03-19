@@ -1,124 +1,108 @@
-# Headers Directory
+# Header_Files
 
 ## Overview
+The `Header_Files` directory contains essential header files for an assembler project. These headers define key data structures, utility functions, and validation mechanisms used throughout the assembly process. This document provides an overview of each file, its purpose, and how to use them effectively.
 
-The `Headers` directory contains all the header files for the assembler project. These header files define the interfaces and data structures used throughout the project. Each header file corresponds to a specific module or functionality within the assembler. This directory is crucial for maintaining modularity and organization in the project.
+## Header Files
+Below is a detailed description of each header file included in this directory:
 
-## File Descriptions
+### 1. **utils.h**
+- Contains utility functions for string manipulation and validation.
+- **Key Functions:**
+  - `char* advance_to_next_token(char* str)`: Skips whitespace in a string.
+  - `char* advance_past_token(char* str)`: Moves past a token in a string.
+  - `int validate_register_operand(const char* str)`: Checks if a string is a valid register operand.
+  - `void trim_newline(char *str)`: Trims newline and trailing spaces from a string.
+  - `void init_label_table(LabelTable *label_table)`: Initializes a label table.
+  - `void init_virtual_pc(VirtualPC *vpc)`: Initializes the virtual PC (VPC) structure.
 
-### `command_utils.h`
-- **Description**: Header file for command validation and processing functions in the assembler.
-- **Key Functions**:
-  - `is_valid_command_name`: Checks if a given token is a valid command name.
-  - `is_valid_command`: Validates a given assembly command.
-  - `get_expected_params`: Determines the number of parameters expected for a given command.
-  - `skip_command_name`: Moves the pointer past the command name in a given line.
-  - `validate_parameters`: Validates the parameters of a command based on the expected count.
-  - `validate_command_params`: Validates the specific parameters for a given command.
+### 2. **vpc_utils.h**
+- Functions for handling Virtual PC (VPC) storage and command processing.
+- **Key Functions:**
+  - `int process_data_or_string_directive(char *ptr, VirtualPC *vpc, int *storage_full)`: Processes `.data` and `.string` directives and store the values as "words" into the vpc storage.
+  - `int process_and_store_command(const char *line, VirtualPC *vpc, int *storage_full)`: Parses and stores assembly commands into "words".
+  - `void process_operand(const char *param, unsigned int *first_word, unsigned int *word, int shift_opcode, int shift_reg, int *param_flag)`: Handles operands for assembly instructions and generate the appropriate binary representation.
 
-### `errors.h`
-- **Description**: Header file for error handling in the assembler.
-- **Key Components**:
-  - `ErrorCode`: Enumeration of various error codes.
-  - `Error`: Structure representing an error with its code, name, and message.
-  - `print_error`: Prints an error message with the line number.
-  - `print_error_no_line`: Prints an error message without the line number.
-  - `get_error_message`: Retrieves the error message for a given error code.
-  - `get_error_name`: Retrieves the error name for a given error code.
+### 3. **command_utils.h**
+- Functions for validating and processing assembly commands.
+- **Key Functions:**
+  - `int is_valid_command_name(const char *token)`: Validates if a token is a command name.
+  - `ErrorCode is_valid_command(const char *line)`: Validates an assembly command.
+  - `ErrorCode validate_parameters(char *line, int expected_params, char params[][MAX_LINE_LENGTH])`: Checks if command parameters are valid.
 
-### `first_pass_utils.h`
-- **Description**: Header file for utility functions used in the first pass of the assembler.
-- **Key Functions**:
-  - `is_data_storage_instruction`: Checks if a given line is a valid `.data` or `.string` directive and validates its format.
-  - `count_data_or_string_elements`: Counts elements in a `.data` or `.string` directive.
+### 4. **errors.h**
+- Defines error codes and warning messages for assembly processing.
+- **Key Elements:**
+  - `typedef enum { ERROR_SUCCESS, ERROR_MEMORY_ALLOCATION, ERROR_FILE_PROCESSING, ERROR_UNKNOWN_COMMAND, ... } ErrorCode;`
+  - `void print_error_with_code(ErrorCode code, int line_number, const char *start, const char *end);`
+  - `void print_warning(WarningCode code, int line_number);`
 
-### `first_pass.h`
-- **Description**: Header file for the first pass of the assembler.
-- **Key Functions**:
-  - `first_pass`: Processes the assembly file for the first pass to identify labels.
+### 5. **globals.h**
+- Defines global constants and reserved words.
+- **Key Definitions:**
+  - `#define MAX_LINE_LENGTH 81`
+  - `#define TRUE 1`
+  - `#define FALSE 0`
+  - `extern const char *reserved_words[];`
+  - `extern const CommandInfo commands_info[RESERVED_COMMANDS_COUNT];`
 
-### `globals.h`
-- **Description**: Header file for global constants and variables used throughout the assembler.
-- **Key Components**:
-  - Constants for maximum lengths and sizes.
-  - External declarations for reserved words and command names.
-  - `CommandInfo`: Structure representing command information.
+### 6. **label_utils.h**
+- Functions for label validation and management.
+- **Key Functions:**
+  - `ErrorCode is_valid_label(const char *label)`: Checks if a label name is valid.
+  - `int label_exists(const char *name, LabelTable *label_table)`: Checks if a label exists.
+  - `ErrorCode add_label(const char *name, int line_number, const char *line, const char *type, VirtualPC *vpc, LabelTable *label_table, const McroTable *mcro_table)`: Adds a label to the table.
 
-### `label_utils.h`
-- **Description**: Header file for label utility functions in the assembler.
-- **Key Functions**:
-  - `is_valid_label`: Validates whether a given string is a valid label name.
-  - `label_exists`: Checks whether a label exists in the label table.
-  - `is_valid_extern_label`: Validates an `.extern` directive and extracts the label.
-  - `is_valid_entry_label`: Checks if a given line is a valid `.entry` directive.
-  - `is_valid_entry_or_extern_line`: Checks if a line is a valid `.entry` or `.extern` directive.
-  - `add_label`: Adds a new label to the label table.
-  - `print_mcro_names`: Prints the names of all macros in the given `McroTable`.
+### 7. **output_builder.h**
+- Handles output file generation (`.ob`, `.ent`, `.ext`).
+- **Key Functions:**
+  - `void generate_object_file(const VirtualPC *vpc, const char *filename);`
+  - `void generate_entry_file(const LabelTable *label_table, const char *filename);`
+  - `void generate_externals_file(const VirtualPC *vpc, const LabelTable *label_table, const char *filename);`
 
-### `output_builder.h`
-- **Description**: Header file for functions that generate output files from the assembled machine code.
-- **Key Functions**:
-  - `generate_object_file`: Writes the assembled machine code into a `.ob` file.
-  - `generate_entry_file`: Writes the entry labels into a `.ent` file.
-  - `generate_externals_file`: Writes the external labels into a `.ext` file.
-  - `compare_labels_by_address`: Comparison function for sorting labels by address.
+### 8. **preprocessor.h**
+- Processes macros and pre-processing directives in assembly files.
+- **Key Functions:**
+  - `int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table);`
+  - `int process_file(const char* filepath, McroTable *mcro_table);`
 
-### `preprocessor_utils.h`
-- **Description**: Header file for utility functions used in the preprocessor module.
-- **Key Functions**:
-  - `init_mcro_table`: Initializes the macro table to an empty state.
-  - `is_valid_mcro_name`: Validates if a given name is a legal macro name.
-  - `add_mcro`: Adds a new macro to the macro table.
-  - `add_line_to_mcro`: Adds a line of content to the most recently added macro.
-  - `print_mcro_table`: Prints all macros stored in the macro table.
-  - `create_am_file`: Processes the content as it would appear in the `.am` file and prints it to stdout.
+### 9. **preprocessor_utils.h**
+- Utility functions for macro processing.
+- **Key Functions:**
+  - `void init_mcro_table(McroTable *table);`
+  - `ErrorCode is_valid_mcro_name(const char *name);`
+  - `int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable *mcro_table);`
 
-### `preprocessor.h`
-- **Description**: Header file for the preprocessor module.
-- **Key Functions**:
-  - `process_as_file`: Processes the macros in the given assembly file.
-  - `process_file`: Processes the given assembly file.
-  - `create_am_file`: Saves the processed content as a `.am` file.
+### 10. **first_pass.h**
+- Executes the first pass of the assembler to define labels and macros.
+- **Key Functions:**
+  - `int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTable *mcro_table);`
 
-### `second_pass.h`
-- **Description**: Header file for the second pass of the assembler.
-- **Key Functions**:
-  - `second_pass`: Processes an assembly source file in its second pass.
-  - `validate_labels_and_relative_addresses`: Processes a command line to validate operands and check for undefined labels.
+### 11. **first_pass_utils.h**
+- Utility functions for the first pass.
+- **Key Functions:**
+  - `ErrorCode is_data_storage_instruction(char *line);`
+  - `int count_data_or_string_elements(char *ptr);`
 
-### `structs.h`
-- **Description**: Header file defining the data structures used in the assembler.
-- **Key Structures**:
-  - `Word`: Represents a single word in the virtual PC.
-  - `VirtualPC`: Represents the virtual PC with storage and counters.
-  - `CommandInfo`: Represents command information.
-  - `Mcro`: Represents a macro with its name and content lines.
-  - `McroTable`: Holds all the macros defined in the source file.
-  - `Label`: Represents a label with its name, line number, and the full line content.
-  - `LabelTable`: Holds a list of labels found in the source file.
+### 12. **second_pass.h**
+- Executes the second pass of the assembler, resolving labels and writing output files.
+- **Key Functions:**
+  - `int second_pass(FILE *am_file, LabelTable *label_table, VirtualPC *vpc);`
+  - `void validate_labels_and_relative_addresses(char *content_after_label, LabelTable *label_table, int line_number, int *is_valid_file);`
 
-### `utils.h`
-- **Description**: Header file for general utility functions used throughout the assembler.
-- **Key Functions**:
-  - `advance_to_next_token`: Advances pointer past whitespace characters.
-  - `advance_past_token`: Advances the pointer past the current token.
-  - `advance_past_token_or_comma`: Advances the pointer past the current token until it hits a space, tab, or comma.
-  - `validate_register_operand`: Validates register operand format.
-  - `verify_command_end`: Ensures no extra tokens after command.
-  - `trim_newline`: Trims newline characters from a string.
-  - `init_label_table`: Initializes the label table.
-  - `init_virtual_pc`: Initializes the virtual PC.
+## Running the Assembler
+1. Ensure all dependencies and header files are correctly included.
+2. Compile the assembler using a C compiler (`gcc`).
+3. Provide an assembly file (`.as`) as input.
+4. The assembler processes the file and generates machine code (`.ob`), entry symbols (`.ent`), and external references (`.ext`).
 
-### `vpc_utils.h`
-- **Description**: Header file for utility functions related to the virtual PC.
-- **Key Functions**:
-  - `process_data_or_string_directive`: Processes `.data` or `.string` directive and stores binary words in the virtual PC.
-  - `process_and_store_command`: Generates a words for a command line.
-  - `process_operand`: Processes an operand and updates the virtual PC.
-  - `resolve_and_update_labels`: Resolves and updates words in the virtual PC storage with label addresses.
+### Example Run:
+```sh
+gcc -o assembler main.c -I./Header_Files && ./assembler input.as
+```
 
 ## Conclusion
+This directory serves as the backbone of the assembler project, providing critical utilities, error handling, and structured processing. For modifications or improvements, ensure header dependencies are managed properly.
 
-The header files in the `Headers` directory are essential for defining the interfaces and data structures used throughout the assembler project. They ensure modularity, maintainability, and clarity in the codebase. Each header file corresponds to a specific module or functionality, making it easier to manage and understand the project.
+For further information, refer to the individual header files and their implementation counterparts.
 
-This README provides a comprehensive overview of the header files and their key functions, making it suitable for submission as a final project to the university.

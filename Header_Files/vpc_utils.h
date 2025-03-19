@@ -50,17 +50,5 @@ int process_and_store_command(const char *line, VirtualPC *vpc, int *storage_ful
  */
 void process_operand(const char *param, unsigned int *first_word, unsigned int *word, int shift_opcode, int shift_reg, int *param_flag);
 
-/**
- * @brief Resolves and updates words in VirtualPC storage with label addresses.
- *
- * This function scans the VirtualPC storage from address 100 to (IC + DC),
- * checking if a word's `encoded` field starts with '&' (indicating relative addressing)
- * or contains a label from the label table. It then updates the word's value with the
- * appropriate address or relative offset.
- *
- * @param vpc Pointer to the VirtualPC structure.
- * @param label_table Pointer to the LabelTable structure.
- */
-int resolve_and_update_labels(VirtualPC *vpc, const LabelTable *label_table);
 
 #endif /* VPC_UTILS_H */
