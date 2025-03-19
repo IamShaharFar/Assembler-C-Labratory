@@ -39,7 +39,7 @@ After compiling, the assembler can be executed with:
 ```sh
 ./assembler file1 file2 ...
 ```
-Each input file should be an assembly file (.as extension). The assembler processes the files and generates an intermediate .am file, which is the source file with comments removed, empty lines eliminated, and macros expanded. It then produces the following output files:
+Each input file should be an assembly file (`.as` extension). The assembler processes the files and generates an intermediate `.am` file, which is the source file with comments removed, empty lines eliminated, and macros expanded. It then produces the following output files:
 - `.ob` (Object file with machine code)
 - `.ent` (Entry labels file)
 - `.ext` (External labels file)
@@ -48,7 +48,7 @@ Each input file should be an assembly file (.as extension). The assembler proces
 ```sh
 ./assembler example
 ```
-This will generate example.am, example.ob, example.ent, and example.ext based on the source assembly file.
+This will generate `example.am`, `example.ob`, `example.ent`, and `example.ext` based on the source assembly file.
 
 ## Source Files
 The `Source_Files/` directory contains the core implementation of the assembler. The key files are:
