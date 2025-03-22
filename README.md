@@ -56,9 +56,21 @@ This will compile all source files and generate an executable `assembler`.
 ```
 
 ### Sample Input/Output Flow
-<img src="Images/example.as.png" width="600"/>
-<img src="Images/example.am.png" width="600"/>
-<img src="Images/example.ob.png" width="600"/>
+
+<div align="center">
+
+  <img src="Images/example.as.png" width="48%" alt=".as file"/>
+  <img src="Images/example.am.png" width="48%" alt=".am file"/>
+
+</div>
+
+<br/>
+<div align="center">
+   <img src="Images/example.ob.png" width="600" alt=".ob file"/>
+   <img src="Images/example.ent.png" width="600" alt=".ent file"/>
+   <img src="Images/example.ext.png" width="600" alt=".ext file"/>
+</div>
+
 
 ### Running the Assembler
 After compiling, the assembler can be executed with:
