@@ -10,7 +10,7 @@ The project is organized into the following directories and files:
 Assembler-C-Labratory/
 ├── Header_Files/         # Contains header files for modular code structure
 ├── Images/               # Stores diagrams and relevant images
-├── Inputs/               # Sample input assembly files
+├── Tests/                # Sample input assembly files
 ├── LICENSE               # License information
 ├── Makefile              # Build automation for compiling the assembler
 ├── README.md             # Documentation of the project
