@@ -57,20 +57,20 @@ This will compile all source files and generate an executable `assembler`.
 
 ### Sample Input/Output Flow
 
-<!-- Input files side-by-side -->
-<p align="center">
-  <img src="Images/example.as.png" width="45%" alt="example.as"/>
-  <img src="Images/example.am.png" width="45%" alt="example.am"/>
-</p>
+#### Input Files
 
-<!-- Output: .ob on left, .ent/.ext stacked on right -->
-<p align="center">
-  <img src="Images/example.ob.png" width="45%" alt="example.ob" style="vertical-align: top;"/>
-  <span style="display: inline-block; width: 45%; vertical-align: top;">
-    <img src="Images/example.ent.png" width="100%" alt="example.ent"/><br/>
-    <img src="Images/example.ext.png" width="100%" alt="example.ext"/>
-  </span>
-</p>
+| `.as` (Original) | `.am` (Preprocessed) |
+|------------------|----------------------|
+| ![example.as](Images/example.as.png) | ![example.am](Images/example.am.png) |
+
+---
+
+#### Output Files
+
+| `.ob` (Object Code) | `.ent` / `.ext` |
+|---------------------|------------------|
+| ![example.ob](Images/example.ob.png) | ![example.ent](Images/example.ent.png)<br>![example.ext](Images/example.ext.png) |
+
 
 ### Running the Assembler
 After compiling, the assembler can be executed with:
