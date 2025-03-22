@@ -2,28 +2,33 @@
 #ifndef ERRORS_H
 #define ERRORS_H
 
-typedef enum {
+typedef enum
+{
     /* General errors */
     ERROR_SUCCESS,
     ERROR_MEMORY_ALLOCATION,
     ERROR_NULL_POINTER,
-    ERROR_FILE_PROCESSING,
-    ERROR_ASSEMBLY_FAILED,
-    ERROR_FILE_DELETE,
-    ERROR_VPC_STORAGE_FULL,
 
-    /* File errors */
+    /* File-related errors */
     ERROR_MISSING_AS_FILE,
     ERROR_FILENAME_TOO_LONG,
     ERROR_FILE_NOT_EXIST,
-    ERROR_LINE_TOO_LONG,
     ERROR_FILE_WRITE,
     ERROR_FILE_READ,
+    ERROR_FILE_DELETE,
+    ERROR_FILE_PROCESSING,
     ERROR_OBJECT_FILE_CREATE,
     ERROR_ENTRY_FILE_CREATE,
     ERROR_EXTERNAL_FILE_CREATE,
 
-    /* Mcro errors */
+    /* Line length errors */
+    ERROR_LINE_TOO_LONG,
+
+    /* Assembly process errors */
+    ERROR_ASSEMBLY_FAILED,
+    ERROR_VPC_STORAGE_FULL,
+
+    /* Macro errors */
     ERROR_MCRO_NO_NAME,
     ERROR_MCRO_DUPLICATE,
     ERROR_MCRO_BEFORE_DEF,
@@ -36,12 +41,7 @@ typedef enum {
     ERROR_MCRO_UNEXPECTED_TEXT,
     ERROR_MACRO_CALL_EXTRA_TEXT,
 
-    /* Entry/Extern/Label errors */
-    ERROR_ENTRY_MISSING_LABEL,
-    ERROR_EXTERN_MISSING_LABEL,
-    ERROR_ENTRY_INSTEAD_OF_EXTERN,
-    ERROR_ENTRY_EXTRA_TEXT,
-    ERROR_EXTERN_EXTRA_TEXT,
+    /* Label-related errors */
     ERROR_LABEL_TOO_LONG,
     ERROR_ILLEGAL_LABEL_START,
     ERROR_ILLEGAL_LABEL_CHAR,
@@ -60,6 +60,13 @@ typedef enum {
     ERROR_EXTERN_LABEL_CONFLICT,
     ERROR_LABEL_ALREADY_EXTERN,
     ERROR_DUPLICATE_ENTRY_LABEL,
+
+    /* Directive errors */
+    ERROR_ENTRY_MISSING_LABEL,
+    ERROR_EXTERN_MISSING_LABEL,
+    ERROR_ENTRY_INSTEAD_OF_EXTERN,
+    ERROR_ENTRY_EXTRA_TEXT,
+    ERROR_EXTERN_EXTRA_TEXT,
     ERROR_MAYBE_MEANT_ENTRY,
     ERROR_MAYBE_MEANT_EXTERN,
 
@@ -71,8 +78,8 @@ typedef enum {
     ERROR_EXTRA_TEXT_AFTER_COMMAND,
     ERROR_INVALID_DIRECT_OR_REGISTER_OPERAND,
     ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_FIRST_OPERAND,
-    ERROR_INVALID_DIRECT_OR_REGISTER_SECOND_OPERAND,
     ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_SECOND_OPERAND,
+    ERROR_INVALID_DIRECT_OR_REGISTER_SECOND_OPERAND,
     ERROR_INVALID_DIRECT_FIRST_OPERAND,
     ERROR_INVALID_RELATIVE_OR_DIRECT_OPERAND,
     ERROR_INVALID_IMMEDIATE_OPERAND,
@@ -80,11 +87,10 @@ typedef enum {
     ERROR_INVALID_REGISTER_FIRST_OPERAND,
     ERROR_INVALID_REGISTER_SECOND_OPERAND,
     ERROR_INVALID_DATA_REAL_NUMBER,
-    ERROR_INVALID_DATA_MISSING_COMMA,
     ERROR_NOT_EXTERN_LINE,
     ERROR_NOT_ENTRY_LINE,
 
-    /* Data/Storage/String errors */
+    /* Data storage errors */
     ERROR_INVALID_DATA_NO_NUMBER,
     ERROR_INVALID_DATA_NON_NUMERIC,
     ERROR_INVALID_DATA_TRAILING_COMMA,
@@ -93,31 +99,32 @@ typedef enum {
     ERROR_INVALID_STRING_MISSING_END_QUOTE,
     ERROR_INVALID_STRING_EXTRA_CHARS,
     ERROR_INVALID_STORAGE_DIRECTIVE,
+    ERROR_INVALID_DATA_MISSING_COMMA,
     ERROR_INVALID_LABEL_CONTENT,
     ERROR_INVALID_DATA_TOO_LARGE,
     ERROR_STRING_NO_VALUE
 } ErrorCode;
 
-
-typedef enum {
+typedef enum
+{
     /* General warnings */
-    WARNING_LABEL_BEFORE_EXTERN = 1,  /* Warns about ignored label before .extern */
-    WARNING_LABEL_BEFORE_ENTRY = 2,
-    WARNING_UNUSED_LABEL,             
-    WARNING_MULTIPLE_SPACES,          
-    WARNING_REDUNDANT_ENTRY          /* Warns if .entry is declared multiple times */
+    WARNING_LABEL_BEFORE_EXTERN, /* Warns about ignored label before .extern */
+    WARNING_LABEL_BEFORE_ENTRY,
+    WARNING_REDUNDANT_ENTRY /* Warns if .entry is declared multiple times */
 } WarningCode;
 
-typedef struct {
+typedef struct
+{
     ErrorCode code;
-    const char* name;     
-    const char* message; 
+    const char *name;
+    const char *message;
 } Error;
 
-typedef struct {
+typedef struct
+{
     WarningCode code;
-    const char* name;
-    const char* message;
+    const char *name;
+    const char *message;
 } Warning;
 
 extern const Error errors[];
@@ -129,9 +136,9 @@ void print_error(ErrorCode code, int line_number);
 void print_warning(WarningCode code, int line_number);
 void print_error_no_line(ErrorCode code);
 void print_warning_no_line(WarningCode code);
-const char* get_error_message(ErrorCode code);
-const char* get_error_name(ErrorCode code);
-const char* get_warning_name(WarningCode code);
-const char* get_warning_message(WarningCode code);
+const char *get_error_message(ErrorCode code);
+const char *get_error_name(ErrorCode code);
+const char *get_warning_name(WarningCode code);
+const char *get_warning_message(WarningCode code);
 
 #endif /* ERRORS_H */

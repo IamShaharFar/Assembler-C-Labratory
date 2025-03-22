@@ -112,8 +112,6 @@ const Error errors[] = {
 const Warning warnings[] = {
     {WARNING_LABEL_BEFORE_EXTERN, "WARNING_LABEL_BEFORE_EXTERN", "Label before .extern directive is ignored."},
     {WARNING_LABEL_BEFORE_ENTRY, "WARNING_LABEL_BEFORE_ENTRY", "Label before .entry directive is ignored."},
-    {WARNING_UNUSED_LABEL, "WARNING_UNUSED_LABEL", "Label is defined but never used."},
-    {WARNING_MULTIPLE_SPACES, "WARNING_MULTIPLE_SPACES", "Unnecessary spaces detected in the line."},
     {WARNING_REDUNDANT_ENTRY, "WARNING_REDUNDANT_ENTRY", "Label declared multiple times as .entry."},
 };
 

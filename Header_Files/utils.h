@@ -66,6 +66,26 @@ int validate_register_operand(const char* str);
 int is_non_existing_register(const char *reg);
 
 /**
+ * @brief checks if a string represents a valid integer number.
+ *
+ * allows optional leading '+' or '-' and verifies all following characters are digits.
+ *
+ * @param s pointer to the string to check
+ * @return TRUE if the string is a valid integer, FALSE otherwise
+ */
+int is_valid_number(const char *s);
+
+/**
+ * @brief checks if a parameter is a valid immediate operand.
+ *
+ * valid immediate operands start with '#' followed by a valid integer.
+ *
+ * @param param the operand string to validate
+ * @return TRUE if operand is a valid immediate, FALSE otherwise
+ */
+int is_immediate_operand(const char *param);
+
+/**
  * @brief Trims trailing newline, carriage return, space, and tab characters from a string.
  *
  * This function removes any trailing newline (`\n`), carriage return (`\r`), space (` `), and tab (`\t`)

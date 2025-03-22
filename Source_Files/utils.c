@@ -59,6 +59,38 @@ int is_non_existing_register(const char *reg)
     return (strcmp(reg, "r8") == 0 || strcmp(reg, "r9") == 0);
 }
 
+/* Checks if a string represents a valid integer number. */
+int is_valid_number(const char *s)
+{
+    if (*s == '-' || *s == '+')
+    {
+        s++; /* skip optional sign */
+    }
+
+    if (!*s)
+    {
+        return FALSE; /* no digits after sign */
+    }
+
+    while (*s)
+    {
+        if (!isdigit((unsigned char)*s))
+        {
+            return FALSE; /* non-digit character found */
+        }
+        s++;
+    }
+
+    return TRUE;
+}
+
+/* Checks if a parameter is a valid immediate operand. */
+int is_immediate_operand(const char *param)
+{
+    return param[0] == '#' && is_valid_number(param + 1);
+}
+
+
 /* Trims trailing newline, carriage return, space, and tab characters from a string. */
 void trim_newline(char *str)
 {
