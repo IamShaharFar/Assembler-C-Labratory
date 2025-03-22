@@ -268,7 +268,7 @@ void fill_addresses_words(FILE *am_file, LabelTable *label_table, VirtualPC *vpc
 
                     else if (label_exists(params[i], label_table))
                     {
-                        Label *label_ptr = get_label_by_name(label_table, params[i] + 1);
+                        Label *label_ptr = get_label_by_name(label_table, params[i]);
                         if (label_ptr != NULL)
                         {
                             label_address = label_ptr->address;

@@ -10,7 +10,7 @@ The project is organized into the following directories and files:
 Assembler-C-Labratory/
 ├── Header_Files/         # Contains header files for modular code structure
 ├── Images/               # Stores diagrams and relevant images
-├── Inputs/               # Sample input assembly files
+├── Tests/                # Sample input assembly files
 ├── LICENSE               # License information
 ├── Makefile              # Build automation for compiling the assembler
 ├── README.md             # Documentation of the project
@@ -54,6 +54,23 @@ This will compile all source files and generate an executable `assembler`.
 ├── .ent (entry labels)
 └── .ext (external references)
 ```
+
+### Sample Input/Output Flow
+
+#### Input Files
+
+| `.as` (Original) | `.am` (Preprocessed) |
+|------------------|----------------------|
+| ![example.as](Images/example.as.png) | ![example.am](Images/example.am.png) |
+
+---
+
+#### Output Files
+
+| `.ob` (Object Code) | `.ent` / `.ext` |
+|---------------------|------------------|
+| ![example.ob](Images/example.ob.png) | ![example.ent](Images/example.ent.png)<br>![example.ext](Images/example.ext.png) |
+
 
 ### Running the Assembler
 After compiling, the assembler can be executed with:
