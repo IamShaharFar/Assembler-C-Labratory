@@ -34,6 +34,27 @@ This will compile all source files and generate an executable `assembler`.
 
 ## Usage
 
+### Assembler Workflow
+
+```
+   .as file
+      |
+      v
+[ Preprocessor ]   -->  .am file (macros expanded)
+      |
+      v
+[ First Pass ]     -->  Symbol table (labels, addresses)
+      |
+      v
+[ Second Pass ]
+      |
+      v
+[ Output Files ]
+├── .ob (machine code)
+├── .ent (entry labels)
+└── .ext (external references)
+```
+
 ### Running the Assembler
 After compiling, the assembler can be executed with:
 ```sh
