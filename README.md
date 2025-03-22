@@ -55,6 +55,11 @@ This will compile all source files and generate an executable `assembler`.
 └── .ext (external references)
 ```
 
+### Sample Input/Output Flow
+<img src="Images/example.as.png" width="600"/>
+<img src="Images/example.am.png" width="600"/>
+<img src="Images/example.ob.png" width="600"/>
+
 ### Running the Assembler
 After compiling, the assembler can be executed with:
 ```sh
