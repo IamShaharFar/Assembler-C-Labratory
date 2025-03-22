@@ -52,6 +52,8 @@ int main(int argc, char *argv[])
     for (i = 1; i < argc; i++)
     {
         success = TRUE;
+        printf("\n==================== Assembling File: %s ====================\n", argv[i]);
+
 
         /* initialize structures */
         init_virtual_pc(vpc);

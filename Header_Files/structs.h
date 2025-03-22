@@ -56,9 +56,8 @@ typedef struct {
 typedef struct {
     char name[MAX_LABEL_LENGTH];
     int line_number;
-    char line[MAX_LINE_LENGTH];
     unsigned int address; /* Address should start from 100 */
-    char type[81]; /* Data or Code */
+    char type[20]; /* data or code or extern, and entry if nececary */
 } Label;
 
 /**

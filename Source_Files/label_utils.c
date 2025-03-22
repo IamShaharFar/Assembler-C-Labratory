@@ -1,7 +1,4 @@
-/*
- * File: label_utils.c
- * Description: Utility functions for handling labels in an assembler.
- */
+/* Source_Files/label_utils.c */
 
 #include <stdio.h>  /* Required for sscanf */
 #include <string.h> /* Required for strcmp, strncpy, strncmp */
@@ -13,29 +10,21 @@
 #include "../Header_Files/structs.h"
 #include "../Header_Files/errors.h"
 
-/*
- * Function: is_valid_label
- * ------------------------
- * Validates whether a given string is a valid label name.
- *
- * label: The label string to check.
- *
- * returns: ERROR_SUCCESS if the label is valid, otherwise an appropriate error code.
- */
+/* Validates whether a given string is a valid label name. */
 ErrorCode is_valid_label(const char *label)
 {
     size_t i;
 
-    /* Advance to first valid character */
+    /* move pointer to first non-space character */
     label = advance_to_next_token((char *)label);
 
-    /* Label must start with an alphabetic character */
+    /* check if label starts with a letter */
     if (label == NULL || !isalpha(label[0]))
     {
         return ERROR_ILLEGAL_LABEL_START;
     }
 
-    /* Ensure all characters are alphanumeric or underscore */
+    /* check if label contains only valid characters */
     for (i = 1; label[i] != '\0'; i++)
     {
         if (!isalnum(label[i]) && label[i] != '_')
@@ -44,13 +33,13 @@ ErrorCode is_valid_label(const char *label)
         }
     }
 
-    /* Check if label is a register name (e.g., r0-r7) */
+    /* check if label is a register name */
     if (validate_register_operand(label) == TRUE)
     {
         return ERROR_LABEL_IS_REGISTER;
     }
 
-    /* Check if the label is a reserved word */
+    /* check if label is a reserved word */
     for (i = 0; i < RESERVED_WORDS_COUNT; i++)
     {
         if (strcmp(label, reserved_words[i]) == 0)
@@ -59,7 +48,7 @@ ErrorCode is_valid_label(const char *label)
         }
     }
 
-    /* Check if the label length is within the allowed limit */
+    /* check if label length exceeds the allowed limit */
     if (strlen(label) > MAX_LABEL_LENGTH)
     {
         return ERROR_LABEL_TOO_LONG;
@@ -68,38 +57,42 @@ ErrorCode is_valid_label(const char *label)
     return ERROR_SUCCESS;
 }
 
-/*
- * Function: label_exists
- * ----------------------
- * Checks whether a label exists in the label table.
- *
- * name: The label name to check.
- * label_table: The table of defined labels.
- *
- * returns: TRUE if the label exists, FALSE otherwise.
- */
+/* Checks whether a label exists in the label table. */
 int label_exists(const char *name, LabelTable *label_table)
 {
     int i;
+    /* iterate through the label table to find a match */
     for (i = 0; i < label_table->count; i++)
     {
         if (strcmp(label_table->labels[i].name, name) == 0)
         {
-            return TRUE;
+            return TRUE; /* label found */
         }
     }
-    return FALSE;
+    return FALSE; /* label not found */
 }
 
-/*
- * Function: is_valid_extern_label
- * -------------------------------
- * Validates an ".extern" directive and extracts the label.
- *
- * line: The input line containing the directive.
- *
- * returns: ERROR_SUCCESS if the label is valid, otherwise an appropriate error code.
- */
+/* find and return a pointer to a label in the label table by name */
+Label *get_label_by_name(LabelTable *label_table, const char *name)
+{
+    int i;
+    if (!label_table || !name)
+    {
+        return NULL;
+    }
+
+    for (i = 0; i < label_table->count; i++)
+    {
+        if (strcmp(label_table->labels[i].name, name) == 0)
+        {
+            return &label_table->labels[i];
+        }
+    }
+
+    return NULL;
+}
+
+/* Validates an ".extern" directive and extracts the label. */
 ErrorCode is_valid_extern_label(const char *line)
 {
     char label[MAX_LINE_LENGTH];
@@ -107,37 +100,44 @@ ErrorCode is_valid_extern_label(const char *line)
     char *ptr;
     ErrorCode err;
 
+    /* copy the input line to a temporary buffer */
     strncpy(temp, line, MAX_LINE_LENGTH - 1);
     temp[MAX_LINE_LENGTH - 1] = '\0'; /* Ensure null termination */
 
-    /* Ensure the line starts with ".extern" */
+    /* move to the first non-space char */
     ptr = advance_to_next_token(temp);
+
+    /* check if the line mistakenly starts with .entry */
     if (strncmp(ptr, ".entry ", 7) == 0)
     {
         return ERROR_ENTRY_INSTEAD_OF_EXTERN;
     }
+    /* check if the line starts with .extern */
     if (strncmp(ptr, ".extern", 7) != 0)
     {
         return ERROR_NOT_EXTERN_LINE;
     }
 
-    /* Move past ".extern" */
+    /* move past .extern */
     ptr += 7;
     ptr = advance_to_next_token(ptr);
 
-    /* Extract label name */
+    /* extract label name */
     if (sscanf(ptr, "%s", label) != 1)
     {
-        return ERROR_EXTERN_MISSING_LABEL; /* No valid label found */
+        return ERROR_EXTERN_MISSING_LABEL;
     }
-    ptr += strlen(label);
+
+    ptr += strlen(label); /* move past the label */
     ptr = advance_to_next_token(ptr);
 
-    if (*ptr != '\0' && *ptr != ';') 
+    /* check if there is extra text after the label */
+    if (*ptr != '\0' && *ptr != ';')
     {
         return ERROR_EXTERN_EXTRA_TEXT;
     }
 
+    /* validate the label itself */
     err = is_valid_label(label);
     if (err != ERROR_SUCCESS)
     {
@@ -147,104 +147,93 @@ ErrorCode is_valid_extern_label(const char *line)
     return ERROR_SUCCESS;
 }
 
-/**
- * @brief Checks if a given line is a valid .entry directive.
- *
- * This function verifies whether a .entry directive has a label that exists in the label table.
- *
- * @param line The line containing the .entry directive.
- * @param label_table Pointer to the label table to check.
- * @return ERROR_SUCCESS if the label exists, otherwise returns an appropriate error code.
- */
+/* Check if an entry label is valid and update the label table */
 ErrorCode is_valid_entry_label(const char *line, LabelTable *label_table)
 {
     char label[MAX_LINE_LENGTH];
     char *ptr;
-    int i;
     ErrorCode err;
+    Label *label_ptr;
 
-
-    /* Advance to first non-space character */
+    /* move to the first non-space character */
     ptr = advance_to_next_token((char *)line);
 
-    /* Move past ".entry" */
+    if (strncmp(ptr, ".entry", 6) != 0)
+    {
+        return ERROR_NOT_ENTRY_LINE;
+    }
+
+    /* move past .entry directive */
     ptr += 6;
-    ptr = advance_to_next_token(ptr);
-
-    /* Extract the label */
-    if (sscanf(ptr, "%s", label) != 1)
+    if (*ptr == '\0')
     {
-        return ERROR_ENTRY_MISSING_LABEL; /* No valid label found */
+        return ERROR_ENTRY_MISSING_LABEL; /* no valid label found */
     }
-    ptr += strlen(label);
-    ptr = advance_to_next_token(ptr);
-
-    if (*ptr != '\0' && *ptr != ';') 
+    else if(*ptr == ' ' || *ptr == '\t')
     {
-        return ERROR_ENTRY_EXTRA_TEXT;
-    }
-
-    err = is_valid_label(label);
-    if (err != ERROR_SUCCESS)
-    {
-        return err;
-    }
-
-
-    /* Check if the label exists in the label table */
-    for (i = 0; i < label_table->count; i++)
-    {
-        if (strcmp(label_table->labels[i].name, label) == 0)
+        ptr = advance_to_next_token(ptr);
+        /* extract label name */
+        if (sscanf(ptr, "%s", label) != 1)
         {
-            if (label_table->labels[i].address == 0)
+            return ERROR_ENTRY_MISSING_LABEL; /* no valid label found */
+        }
+        ptr += strlen(label);
+        ptr = advance_to_next_token(ptr);
+
+        /* check if there is extra text after the label */
+        if (*ptr != '\0' && *ptr != ';')
+        {
+            return ERROR_ENTRY_EXTRA_TEXT;
+        }
+
+        /* validate the label itself */
+        err = is_valid_label(label);
+        if (err != ERROR_SUCCESS)
+        {
+            return err;
+        }
+
+        /* check if label exists in the table and update its type */
+        label_ptr = get_label_by_name(label_table, label);
+        if (label_ptr != NULL)
+        {
+            if (label_ptr->address == 0)
             {
                 return ERROR_LABEL_NOT_DEFINED_IN_FILE; /* Cannot be an entry with a label that is not defined in the file */
             }
 
-            /* Append ", entry" to the label type if not already present */
-            if (strstr(label_table->labels[i].type, "entry") == NULL)
+            /* add entry type if not already marked */
+            if (strstr(label_ptr->type, "entry") == NULL)
             {
-                strncat(label_table->labels[i].type, ", entry", sizeof(label_table->labels[i].type) - strlen(label_table->labels[i].type) - 1);
+                strncat(label_ptr->type, ", entry", sizeof(label_ptr->type) - strlen(label_ptr->type) - 1);
             }
             else
             {
                 return ERROR_DUPLICATE_ENTRY_LABEL;
             }
-            return ERROR_SUCCESS; /* Valid entry directive */
+            return ERROR_SUCCESS;
         }
+        return ERROR_UNDEFINED_ENTRY_LABEL; /* label not found in the label table */
     }
-
-    return ERROR_UNDEFINED_LABEL; /* Label not found in the loop */
+    else
+    {
+        return ERROR_MAYBE_MEANT_ENTRY;
+    }
 }
 
-/**
- * @brief Adds a new label to the label table.
- *
- * This function adds a label if it doesn't already exist and is not a macro name.
- * If the label exists in the label table or matches a macro name, it triggers an error.
- *
- * @param name The name of the label.
- * @param line_number The line number where the label was found.
- * @param line The full line content after the label.
- * @param type The type of the label.
- * @param address The memory address of the label.
- * @param label_table Pointer to the label table.
- * @param mcro_table Pointer to the macro table.
- *
- * @return ERROR_SUCCESS if the label is added successfully, otherwise returns an appropriate error code.
- */
+/* Adds a new label to the label table. */
 ErrorCode add_label(const char *name, int line_number, const char *line, const char *type, VirtualPC *vpc, LabelTable *label_table, const McroTable *mcro_table)
 {
     int i;
     ErrorCode err = ERROR_SUCCESS;
 
-    /* Check if the label table has space for new labels */
+    /* check if label table is full */
     if (label_table->count >= MAX_LABELS)
     {
         err = ERROR_MEMORY_ALLOCATION;
     }
 
-    /* Check if the label already exists in the label table */
+    /* check for duplicate labels */
     for (i = 0; i < label_table->count; i++)
     {
         if (strcmp(name, label_table->labels[i].name) == 0)
@@ -256,8 +245,8 @@ ErrorCode add_label(const char *name, int line_number, const char *line, const c
             return ERROR_LABEL_DUPLICATE;
         }
     }
-    
-    /* Existing code to check for label conflicts with macro names */
+
+    /* check if label name conflicts with a macro name */
     for (i = 0; i < mcro_table->count; i++)
     {
         if (strcmp(name, mcro_table->mcros[i].name) == 0)
@@ -267,21 +256,23 @@ ErrorCode add_label(const char *name, int line_number, const char *line, const c
         }
     }
 
-    /* Add the label to the label table */
+    /* copy label name */
     strncpy(label_table->labels[label_table->count].name, name, MAX_LINE_LENGTH - 1);
     label_table->labels[label_table->count].name[MAX_LINE_LENGTH - 1] = '\0';
+
+    /* set line number */
     label_table->labels[label_table->count].line_number = line_number;
 
-    /* Assign the label type and ensure null termination */
+    /* copy the label type and ensure null termination */
     strncpy(label_table->labels[label_table->count].type, type, sizeof(label_table->labels[label_table->count].type) - 1);
     label_table->labels[label_table->count].type[sizeof(label_table->labels[label_table->count].type) - 1] = '\0';
 
-    /* Assign the given address to the label */
+    /* set label address based on type */
     if (strcmp(type, "code") == 0)
     {
         label_table->labels[label_table->count].address = vpc->IC;
     }
-    else if(strcmp(type, "data") == 0)
+    else if (strcmp(type, "data") == 0)
     {
         label_table->labels[label_table->count].address = vpc->DC;
     }
@@ -290,40 +281,8 @@ ErrorCode add_label(const char *name, int line_number, const char *line, const c
         label_table->labels[label_table->count].address = 0;
     }
 
-    /* Store the full line associated with the label */
-    strncpy(label_table->labels[label_table->count].line, line, MAX_LINE_LENGTH - 1);
-    label_table->labels[label_table->count].line[MAX_LINE_LENGTH - 1] = '\0';
-
-    /* Increment label count */
+    /* increment label count */
     label_table->count++;
 
     return err;
-}
-
-/**
- * @brief Prints the names of all macros in the given McroTable.
- *
- * @param mcro_table Pointer to the McroTable containing the macros.
- */
-void print_mcro_names(const McroTable *mcro_table)
-{
-    int i;
-
-    if (mcro_table == NULL)
-    {
-        fprintf(stderr, "Error: NULL macro table provided.\n");
-        return;
-    }
-
-    if (mcro_table->count == 0)
-    {
-        printf("No macros defined.\n");
-        return;
-    }
-
-    printf("Defined Macros:\n");
-    for (i = 0; i < mcro_table->count; i++)
-    {
-        printf("%d. %s\n", i + 1, mcro_table->mcros[i].name);
-    }
 }

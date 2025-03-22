@@ -31,7 +31,7 @@ char* advance_to_next_token(char* str);
 char* advance_past_token(char* str);
 
 /**
- * @brief Advances the pointer past the current token or comma in the string.
+ * @brief Advances the pointer past the current token or next comma in the string.
  *
  * This function iterates through the given string and advances the pointer past the current
  * token, which is defined as a sequence of non-whitespace characters and commas. It stops at the first

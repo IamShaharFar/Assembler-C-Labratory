@@ -13,7 +13,7 @@
  * @param vpc Pointer to the VirtualPC structure containing the machine code.
  * @param filename The name of the .am file (without extension).
  */
-void generate_object_file(const VirtualPC *vpc, const char *filename);
+void generate_object_file(VirtualPC *vpc, const char *filename);
 
 /**
  * @brief Comparison function for sorting labels by address.
@@ -30,7 +30,7 @@ int compare_labels_by_address(const void *a, const void *b);
  * @param label_table Pointer to the LabelTable structure containing label data.
  * @param filename The name of the .am file (without extension).
  */
-void generate_entry_file(const LabelTable *label_table, const char *filename);
+void generate_entry_file(LabelTable *label_table, const char *filename);
 
 /**
  * @brief Writes the external labels into a .ext file.
@@ -44,7 +44,17 @@ void generate_entry_file(const LabelTable *label_table, const char *filename);
  * @param label_table Pointer to the LabelTable structure containing labels.
  * @param filename The name of the .am file (without extension).
  */
-void generate_externals_file(const VirtualPC *vpc, const LabelTable *label_table, const char *filename);
+void generate_externals_file(VirtualPC *vpc, LabelTable *label_table, const char *filename);
 
+/**
+ * @brief fills address words for label operands in the virtual pc.
+ *
+ * processes the .am file, resolves direct and relative label references,
+ * and updates instruction words in the virtual pc accordingly.
+ *
+ * @param am_file pointer to the .am file
+ * @param label_table pointer to the label table
+ * @param vpc pointer to the virtual pc
+ */
 void fill_addresses_words(FILE *am_file, LabelTable *label_table, VirtualPC *vpc);
 #endif /* OUTPUT_BUILDER_H */

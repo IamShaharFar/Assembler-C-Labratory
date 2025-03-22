@@ -1,31 +1,25 @@
-/*
- * File: preprocessor.c
- * --------------------
- * Handles preprocessing of assembly files, including macro expansion,
- * path resolution, and file existence checks.
- */
+/* Source_Files/preprocessor.c */
 
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
- #include <ctype.h>
- #include "../Header_Files/preprocessor.h"       /* process_file() */
- #include "../Header_Files/globals.h"            /* MAX_FILENAME_LENGTH, TRUE, FALSE */
- #include "../Header_Files/errors.h"             /* print_error_no_line() */
- #include "../Header_Files/utils.h"              /* Utility functions */
- #include "../Header_Files/preprocessor_utils.h" /* Macro handling functions */
- 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include "../Header_Files/preprocessor.h"       /* process_file() */
+#include "../Header_Files/globals.h"            /* MAX_FILENAME_LENGTH, TRUE, FALSE */
+#include "../Header_Files/errors.h"             /* print_error_no_line() */
+#include "../Header_Files/utils.h"              /* Utility functions */
+#include "../Header_Files/preprocessor_utils.h" /* Macro handling functions */
 
 /**
  * @brief Checks if a given file exists by attempting to open it.
- * 
+ *
  * @param filename The name of the file to check.
  * @return TRUE (1) if the file exists, FALSE (0) otherwise.
  */
 static int file_exists(const char *filename)
 {
     FILE *file = fopen(filename, "r");
-    if (file) 
+    if (file)
     {
         fclose(file);
         return TRUE;
@@ -35,7 +29,7 @@ static int file_exists(const char *filename)
 
 /**
  * @brief Checks if an assembly (.as) file exists for the given filepath.
- * 
+ *
  * @param filepath Base filepath.
  * @return TRUE (1) if the file exists, FALSE (0) otherwise.
  */
@@ -48,24 +42,24 @@ static int check_as_file_exists(const char *filepath)
 
 /**
  * @brief Constructs the full path of the source .as file.
- * 
+ *
  * Ensures the given filepath has a .as extension, appending it if necessary.
  * Caller must free allocated memory.
- * 
+ *
  * @param filepath Base filepath.
  * @return Pointer to allocated string containing full path or NULL on failure.
  */
 static char *get_full_source_path(const char *filepath)
 {
-    char *full_path = (char *)malloc(MAX_FILENAME_LENGTH);
+    char *full_path = (char *)malloc(MAX_FILENAME_LENGTH + 9); /* +9 for "./Inputs/" */
     size_t len = strlen(filepath);
-    
+
     if (!full_path)
     {
         return NULL;
     }
 
-    /* Check if the filepath already has the .as extension */
+    /* check if the filepath already has the .as extension */
     if (len > 3 && strcmp(filepath + len - 3, ".as") == 0)
     {
         strncpy(full_path, filepath, MAX_FILENAME_LENGTH - 1);
@@ -79,10 +73,10 @@ static char *get_full_source_path(const char *filepath)
 
 /**
  * @brief Extracts directory path from a given filepath.
- * 
+ *
  * Returns "./" if no directory is present in the path.
  * Caller must free allocated memory.
- * 
+ *
  * @param filepath Full filepath.
  * @return Pointer to allocated string containing directory path, or NULL on failure.
  */
@@ -90,8 +84,8 @@ static char *get_directory_path(const char *filepath)
 {
     char *dir_path;
     const char *last_slash = strrchr(filepath, '/'); /* locate the last '/' in filepath */
-    size_t dir_len;         /* length of the directory path */
-    
+    size_t dir_len;                                  /* length of the directory path */
+
     if (!last_slash) /* no directory separator found, return "./" */
     {
         dir_path = (char *)malloc(2);
@@ -101,7 +95,7 @@ static char *get_directory_path(const char *filepath)
         }
         return dir_path;
     }
-    
+
     dir_len = last_slash - filepath; /* compute directory length */
     dir_path = (char *)malloc(dir_len + 1);
 
@@ -110,25 +104,13 @@ static char *get_directory_path(const char *filepath)
         return NULL;
     }
 
-    strncpy(dir_path, filepath, dir_len); 
+    strncpy(dir_path, filepath, dir_len);
     dir_path[dir_len] = '\0'; /* null-terminate the string */
 
     return dir_path;
 }
 
-/**
- * @brief Processes macros in an assembly file.
- *
- * Reads the assembly source file line by line, processes macro definitions and content,
- * and stores them in the provided macro table. The function dynamically allocates memory
- * for reading lines and ensures line length does not exceed the maximum allowed size.
- * After processing, it creates an output file with the expanded macros.
- *
- * @param fp File pointer to the assembly source file.
- * @param file_path Path to the source file.
- * @param mcro_table Pointer to the macro table.
- * @return TRUE (1) if processing is successful, FALSE (0) otherwise.
- */
+/* Processes macros in an assembly file. */
 int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
 {
     char *line = NULL, *token, *ptr;
@@ -168,9 +150,9 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
                 }
                 line = new_line;
             }
-            line[pos++] = (char)ch;
+            line[pos++] = (char)ch; /* put the char and skip pos to the next char*/
         }
-        line[pos] = '\0';
+        line[pos] = '\0'; /* ensure null termination */
 
         /* check if empty line */
         if (pos == 0 && ch == EOF)
@@ -178,7 +160,9 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
 
         line_number++;
 
-        /* check if the line exceeds the maximum allowed length */
+        /* find last non-whitespace character */
+        
+        /* check if line exceeds max length after trimming trailing spaces */
         if (pos >= MAX_LINE_LENGTH)
         {
             print_error(ERROR_LINE_TOO_LONG, line_number);
@@ -187,7 +171,7 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
         }
 
         /* free previous temp_line before reuse */
-        free(temp_line); 
+        free(temp_line);
         temp_line = (char *)malloc(strlen(line) + 1);
         if (!temp_line)
         {
@@ -201,18 +185,18 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
         token = strtok(temp_line, " \t\n");
         if (!token)
         {
-            continue; 
+            continue;
         }
 
-        token[strcspn(token, "\r\n")] = 0; /* remove newline characters */
+        trim_newline(token);
 
         /* handle macro end */
-        if (strncmp(token, "mcroend", 7) == 0) 
+        if (strncmp(token, "mcroend", 7) == 0)
         {
             /* look ahead for extra junk text */
             char *next_char = advance_to_next_token(line) + 7;
             next_char = advance_to_next_token(next_char);
-        
+
             /* ensure next character is either end of string ('\0') or a comment (';') */
             if (*next_char == '\0' || *next_char == ';')
             {
@@ -226,7 +210,7 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
                 continue;
             }
         }
-        
+
         /* handle macro definition */
         if (strcmp(token, "mcro") == 0)
         {
@@ -238,7 +222,7 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
                 is_valid = FALSE;
                 continue;
             }
-            token[strcspn(token, "\r\n")] = '\0';
+            trim_newline(token);
 
             /* check for unexpected text after macro name */
             extra_text = strtok(NULL, " \t\n");
@@ -272,8 +256,7 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
         if (in_mcro)
         {
             ptr = line;
-            while (*ptr == ' ' || *ptr == '\t') /* skip leading spaces */
-                ptr++;
+            ptr = advance_to_next_token(ptr);
 
             error = add_line_to_mcro(mcro_table, ptr);
             if (error != ERROR_SUCCESS)
@@ -288,31 +271,21 @@ int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table)
     /* cleanup */
     free(line);
     free(temp_line);
-    
+
     /* Create .am file */
-    create_am_file(fp, file_path, mcro_table);
+    expand_macros_to_am_file (fp, file_path, mcro_table, &is_valid);
     return is_valid;
 }
 
-/**
- * @brief Processes an assembly file.
- *
- * Validates the provided file path, constructs the full source path, and processes
- * the assembly file by reading its content and handling macros. Ensures proper memory
- * allocation and cleanup.
- *
- * @param filepath Path to the assembly source file.
- * @param mcro_table Pointer to the macro table.
- * @return TRUE (1) if processing succeeds, FALSE (0) otherwise.
- */
+/* Prepocesses an assembly file. */
 int process_file(const char *filepath, McroTable *mcro_table)
 {
-    char *full_source_path; 
-    char *dir_path;        
+    char *full_source_path;
+    char *dir_path;
     FILE *fp;
     int result;
 
-    /* check filename length */
+    /* check filename length after ".as/0"*/
     if (strlen(filepath) > MAX_FILENAME_LENGTH - 4)
     {
         print_error(ERROR_FILENAME_TOO_LONG, 0);
@@ -322,7 +295,7 @@ int process_file(const char *filepath, McroTable *mcro_table)
     /* verify file exists */
     if (!check_as_file_exists(filepath))
     {
-        print_error(ERROR_MISSING_AS_FILE, 0);
+        print_error(ERROR_FILE_NOT_EXIST, 0);
         return FALSE;
     }
 
@@ -358,7 +331,7 @@ int process_file(const char *filepath, McroTable *mcro_table)
     }
 
     /* process macros */
-    result = process_as_file(fp, full_source_path, mcro_table); 
+    result = process_as_file(fp, full_source_path, mcro_table);
 
     /* cleanup */
     fclose(fp);

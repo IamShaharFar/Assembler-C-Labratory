@@ -71,7 +71,7 @@ Below is a detailed description of each header file included in this directory:
 - **Key Functions:**
   - `void init_mcro_table(McroTable *table);`
   - `ErrorCode is_valid_mcro_name(const char *name);`
-  - `int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable *mcro_table);`
+  - `int expand_macros_to_am_file (FILE *source_fp, const char *source_filepath, const McroTable *mcro_table);`
 
 ### 10. **first_pass.h**
 - Executes the first pass of the assembler to define labels and macros.

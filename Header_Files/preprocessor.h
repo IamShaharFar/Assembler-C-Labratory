@@ -23,7 +23,7 @@
 int process_as_file(FILE *fp, const char *file_path, McroTable *mcro_table);
 
 /**
- * @brief Processes the given assembly file.
+ * @brief Preprocesses the given assembly file.
  *
  * This function checks the validity of the given filepath, constructs the full source path,
  * and processes the assembly file by reading its content and handling macro definitions.

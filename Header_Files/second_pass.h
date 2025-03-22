@@ -1,7 +1,4 @@
-/*
- * File: second_pass.h
- * Description: Header file for the second pass of the assembler.
- */
+/* Header_Files/second_pass.h */
 
  #ifndef SECOND_PASS_H
  #define SECOND_PASS_H
@@ -13,7 +10,6 @@
  #include "utils.h"   /* Ensure it has advance_to_next_token */
  
 /**
- * @file second_pass.c
  * @brief Implements the second pass of the assembler.
  *
  * This function processes an assembly source file (.am) in its second pass,
@@ -47,7 +43,7 @@
  * @param is_valid_file Pointer to the flag indicating if the file is valid.
  * @return void
  */
-void validate_labels_and_relative_addresses(char *content_after_label, LabelTable *label_table, int line_number, int *is_valid_file);
+void validate_labels_and_relative_addresses(char *content_after_label, LabelTable *label_table, int line_number, int *is_valid_file, char *label);
 
  #endif /* SECOND_PASS_H */
  

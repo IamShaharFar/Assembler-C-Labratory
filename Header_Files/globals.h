@@ -32,6 +32,6 @@ extern const char *commands_names[];
 
 #include "../Header_Files/structs.h" 
 
-extern const CommandInfo commands_info[RESERVED_COMMANDS_COUNT]; /* Explicitly define array size */
+extern const CommandInfo commands_info[RESERVED_COMMANDS_COUNT]; /* define array size */
 
 #endif /* GLOBALS_H */

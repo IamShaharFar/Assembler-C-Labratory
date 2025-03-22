@@ -61,8 +61,9 @@ ErrorCode add_line_to_mcro(McroTable *table, const char *line);
  * @param source_fp Pointer to the source file.
  * @param source_filepath Path to the source file.
  * @param mcro_table Pointer to the macro table containing defined macros.
+ * @param is_valid Pointer to the is_valid file flag.
  * @return TRUE (1) if processing is successful, FALSE (0) otherwise.
  */
-int create_am_file(FILE *source_fp, const char *source_filepath, const McroTable *mcro_table);
+int expand_macros_to_am_file (FILE *source_fp, const char *source_filepath, const McroTable *mcro_table, int *is_valid);
 
 #endif /* PREPROCESSOR_UTILS_H */

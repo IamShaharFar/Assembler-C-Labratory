@@ -1,7 +1,6 @@
 #include "../Header_Files/globals.h"
 #include "../Header_Files/structs.h"
 
-/* Reserved words */
 const char *reserved_words[] = {
     "mov", "cmp", "add", "sub", "lea", "clr", "not", "inc", "dec",
     "jmp", "bne", "jsr", "red", "prn", "rts", "stop", "mcro",
@@ -9,13 +8,12 @@ const char *reserved_words[] = {
     "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"
 };
 
-/* Command names */
 const char *commands_names[] = {
     "mov", "cmp", "add", "sub", "lea", "clr", "not", "inc", "dec",
     "jmp", "bne", "jsr", "red", "prn", "rts", "stop"
 };
 
-/* Command info array with correct size */
+/* command info (name, func, optcode) array with correct size */
 const CommandInfo commands_info[RESERVED_COMMANDS_COUNT] = {
     {"mov", 0, -1}, 
     {"cmp", 1, -1},  

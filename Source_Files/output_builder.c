@@ -11,17 +11,8 @@
 #include "../Header_Files/label_utils.h"
 #include "../Header_Files/command_utils.h"
 
-/**
- * @brief Writes the assembled machine code into a .ob file.
- *
- * The function generates a .ob file in the same directory as the .am file.
- * It writes the IC (instruction counter) and DC (data counter) in the first line.
- * Each following line contains the memory address and its corresponding value in hexadecimal format.
- *
- * @param vpc Pointer to the VirtualPC structure containing the machine code.
- * @param filename The name of the .am file (without extension).
- */
-void generate_object_file(const VirtualPC *vpc, const char *filename)
+/* Writes the assembled machine code into a .ob file. */
+void generate_object_file(VirtualPC *vpc, const char *filename)
 {
     char ob_filename[MAX_FILENAME_LENGTH + 4]; /* +4 for ".ob\0" */
     FILE *ob_file;
@@ -29,25 +20,25 @@ void generate_object_file(const VirtualPC *vpc, const char *filename)
     uint32_t end_addr = vpc->IC + vpc->DC;
     int i;
 
-    /* Construct the .ob filename */
+    /* construct the .ob filename */
     sprintf(ob_filename, "%s.ob", filename);
 
-    /* Open the .ob file for writing */
+    /* open the .ob file for writing */
     ob_file = fopen(ob_filename, "w");
     if (!ob_file)
     {
-        fprintf(stderr, "Error: Failed to create object file %s\n", ob_filename);
+        print_error_no_line(ERROR_OBJECT_FILE_CREATE);
         return;
     }
 
-    /* Write IC - 100 and DC in the first line */
+    /* write IC - 100 and DC in the first line */
     fprintf(ob_file, "%7d %d\n", vpc->IC - 100, vpc->DC);
 
-    /* Write the memory content */
+    /* write the memory content */
     for (i = start_addr; i < end_addr; i++)
     {
         fprintf(ob_file, "%07d %06x\n", i, vpc->storage[i].value & 0xFFFFFF);
-        /* Ensure 24-bit representation */
+        /* ensure 24-bit representation */
     }
 
     fclose(ob_file);
@@ -62,17 +53,8 @@ int compare_labels_by_address(const void *a, const void *b)
     return ((Label *)a)->address - ((Label *)b)->address;
 }
 
-/**
- * @brief Writes the entry labels into a .ent file.
- *
- * This function creates a .ent file in the same directory as the .am file.
- * It writes labels marked with "entry" in increasing order of their addresses.
- * Each line contains the label's address (padded to 7 digits) and its name.
- *
- * @param label_table Pointer to the LabelTable structure containing label data.
- * @param filename The name of the .am file (without extension).
- */
-void generate_entry_file(const LabelTable *label_table, const char *filename)
+/* Writes the entry labels into a .ent file. */
+void generate_entry_file(LabelTable *label_table, const char *filename)
 {
     char ent_filename[MAX_FILENAME_LENGTH + 4]; /* +4 for ".ent\0" */
     FILE *ent_file;
@@ -80,11 +62,11 @@ void generate_entry_file(const LabelTable *label_table, const char *filename)
     Label sorted_labels[100];
     int entry_count = 0;
 
-    /* Sort labels by address */
+    /* sort labels by address */
     memcpy(sorted_labels, label_table->labels, label_table->count * sizeof(Label));
     qsort(sorted_labels, label_table->count, sizeof(Label), compare_labels_by_address);
 
-    /* Check if there are any entry labels */
+    /* check if there are any entry labels */
     for (i = 0; i < label_table->count; i++)
     {
         if (strstr(sorted_labels[i].type, "entry") != NULL)
@@ -93,25 +75,25 @@ void generate_entry_file(const LabelTable *label_table, const char *filename)
         }
     }
 
-    /* If no entry labels, do not create the file */
+    /* if no entry labels, do not create the file */
     if (entry_count == 0)
     {
         printf("No entry labels found. Entry file not created.\n");
         return;
     }
 
-    /* Construct the .ent filename */
+    /* construct the .ent filename */
     sprintf(ent_filename, "%s.ent", filename);
 
-    /* Open the .ent file for writing */
+    /* open the .ent file for writing */
     ent_file = fopen(ent_filename, "w");
     if (!ent_file)
     {
-        fprintf(stderr, "Error: Failed to create entry file %s\n", ent_filename);
+        print_error_no_line(ERROR_ENTRY_FILE_CREATE);
         return;
     }
 
-    /* Write the labels marked as "entry" */
+    /* write the labels marked as "entry" */
     for (i = 0; i < label_table->count; i++)
     {
         if (strstr(sorted_labels[i].type, "entry") != NULL)
@@ -124,59 +106,45 @@ void generate_entry_file(const LabelTable *label_table, const char *filename)
     printf("Entry file '%s' generated successfully.\n", ent_filename);
 }
 
-/**
- * @brief Writes the external labels into a .ext file.
- *
- * This function creates a .ext file in the same directory as the .am file.
- * It writes labels that have an address of 0 (indicating external references).
- * Each line contains the label's name (encoded string) and the memory address
- * where it is used (formatted as a 7-digit number).
- *
- * @param vpc Pointer to the VirtualPC structure containing machine code.
- * @param label_table Pointer to the LabelTable structure containing labels.
- * @param filename The name of the .am file (without extension).
- */
-void generate_externals_file(const VirtualPC *vpc, const LabelTable *label_table, const char *filename)
+/* Writes the external labels into a .ext file. */
+void generate_externals_file(VirtualPC *vpc, LabelTable *label_table, const char *filename)
 {
-    char ext_filename[MAX_FILENAME_LENGTH + 4]; /* +4 for ".ext\0" */
+    char ext_filename[MAX_FILENAME_LENGTH + 5]; /* +4 for ".ext\0" */
     FILE *ext_file;
     uint32_t start_addr = 100;
     uint32_t end_addr = vpc->IC + vpc->DC;
-    int i, j;
+    int i;
     int extern_count = 0;
 
-    /* Construct the .ext filename */
+    /* construct the .ext filename */
     sprintf(ext_filename, "%s.ext", filename);
 
-    /* Open the .ext file for writing */
+    /* open the .ext file for writing */
     ext_file = fopen(ext_filename, "w");
     if (!ext_file)
     {
-        fprintf(stderr, "Error: Failed to create externals file %s\n", ext_filename);
+        print_error_no_line(ERROR_EXTERNAL_FILE_CREATE);
         return;
     }
 
-    /* Scan through VirtualPC storage */
+    /* scan through VirtualPC storage */
 
     for (i = start_addr; i < end_addr; i++)
     {
         const char *encoded_str = vpc->storage[i].encoded;
 
-        /* Check if encoded string matches a label in the label table */
-        for (j = 0; j < label_table->count; j++)
+        /* check if encoded string matches a label in the label table */
+        Label *label_ptr = get_label_by_name(label_table, encoded_str);
+        if (label_ptr != NULL && label_ptr->address == 0)
         {
-            if (strcmp(encoded_str, label_table->labels[j].name) == 0 &&
-                label_table->labels[j].address == 0)
-            {
-                /* Write to file: label name and address in 7-digit format */
+                /* write to file: label name and address in 7-digit format */
                 fprintf(ext_file, "%s %07u\n", encoded_str, i);
                 extern_count++;
                 break;
-            }
         }
     }
 
-    /* If no extern labels, do not create the file */
+    /* if no extern labels, do not create the file */
     if (extern_count == 0)
     {
         fclose(ext_file);
@@ -189,19 +157,20 @@ void generate_externals_file(const VirtualPC *vpc, const LabelTable *label_table
     printf("Externals file '%s' generated successfully.\n", ext_filename);
 }
 
+/* Fills address words for label operands in the virtual pc. */
 void fill_addresses_words(FILE *am_file, LabelTable *label_table, VirtualPC *vpc)
 {
-    /* Variable Declarations */
+    /* variable Declarations */
     char line[MAX_LINE_LENGTH];
     char params[2][MAX_LINE_LENGTH], command_name[10];
     char *ptr, *ptr_scan, *colon_pos;
     int param_count = 0;
-    int address = 100; /* Initial address */
-    int i, j;
+    int address = 100; /* initial address */
+    int i;
     int inside_string = FALSE;
     int label_address = 0, value = 0;
 
-    rewind(am_file); /* Ensure reading from the beginning */
+    rewind(am_file); /* ensure reading from the beginning */
 
     while (fgets(line, MAX_LINE_LENGTH, am_file))
     {
@@ -210,51 +179,51 @@ void fill_addresses_words(FILE *am_file, LabelTable *label_table, VirtualPC *vpc
         colon_pos = NULL;
         inside_string = FALSE;
         
-        ptr = advance_to_next_token(line); /* Skip leading spaces */
+        ptr = advance_to_next_token(line); /* skip leading spaces */
         ptr_scan = ptr;
 
-        /* Scan through the line to find a colon that is not inside a string */
+        /* scan through the line to find a colon that is not inside a string */
         while (*ptr_scan)
         {
             if (*ptr_scan == '"')
             {
-                inside_string = !inside_string; /* Toggle string state */
+                inside_string = !inside_string; /* toggle string state */
             }
             else if (*ptr_scan == ':' && !inside_string)
             {
-                colon_pos = ptr_scan; /* Valid colon found */
+                colon_pos = ptr_scan; /* valid colon found */
                 break;
             }
             ptr_scan++;
         }
 
-        /* If a valid colon was found, move past it */
+        /* if a valid colon was found, move past it */
         if (colon_pos)
         {
             ptr = advance_to_next_token(colon_pos + 1);
         }
 
-        /* Process .data or .string directives */
-        if (strncmp(ptr, ".data", 5) == 0 && isspace((unsigned char)ptr[5]))
+        /* process .data or .string directives */
+        if (strncmp(ptr, ".data", 5) == 0 || strncmp(ptr, ".string", 5) == 0 ||
+            strncmp(ptr, ".entry", 5) == 0 || strncmp(ptr, ".extern", 5) == 0)
         {
-            address += count_data_or_string_elements(ptr);
-        }
-        else if (strncmp(ptr, ".string", 7) == 0 && isspace((unsigned char)ptr[7]))
-        {
-            address += count_data_or_string_elements(ptr);
+            continue;
         }
         else
         {
             sscanf(ptr, "%s", command_name);
             if (is_valid_command_name(command_name))
             {
-                /* printf("line: '%s", ptr); */
-                address += 1;
+                address += 1; /* count the word of the command name */
                 ptr = advance_past_token(ptr);
                 ptr = advance_to_next_token(ptr);
+
+                /* check if there is at least 1 operand*/
                 if (*ptr != '\n' && *ptr != '\0' && *ptr != '\r')
                 {
                     i = 0;
+
+                    /* save the first operand*/
                     while (*ptr && !isspace((unsigned char)*ptr) && *ptr != ',')
                     {
                         params[param_count][i++] = *ptr++;
@@ -263,6 +232,7 @@ void fill_addresses_words(FILE *am_file, LabelTable *label_table, VirtualPC *vpc
                     i = 0;
                     param_count++;
 
+                    /* if there is another operand*/
                     if (*ptr != '\n' && *ptr != '\0' && *ptr != '\r')
                     {
                         ptr++;
@@ -284,52 +254,45 @@ void fill_addresses_words(FILE *am_file, LabelTable *label_table, VirtualPC *vpc
                     
                     if (params[i][0] == '&')
                     {
-                        printf("param %s\n", params[i]); 
-                        for (j = 0; j < label_table->count; j++)
+                        Label *label_ptr = get_label_by_name(label_table, params[i] + 1);
+                        if (label_ptr != NULL)
                         {
-                            if (strcmp(params[i] + 1, label_table->labels[j].name) == 0)
-                            {
-                                label_address = label_table->labels[j].address;
-                                value = label_address - (address - 1); /* Calculate relative address (-1 to reach command address) */
+                            label_address = label_ptr->address;
+                            value = label_address - (address - 1); /* calculate relative address (-1 to reach command address) */
 
-                                word_value &= ~(0x1FFFFF << 3);        /* Clear bits 3-23 */
-                                word_value |= (value & 0x1FFFFF) << 3; /* Set bits 3-23 with the value*/
-                                vpc->storage[address].value = word_value;
-                            }
+                            word_value &= ~(0x1FFFFF << 3);        /* clear bits 3-23 */
+                            word_value |= (value & 0x1FFFFF) << 3; /* set bits 3-23 with the value*/
+                            vpc->storage[address].value = word_value;
                         }
                     }
 
                     else if (label_exists(params[i], label_table))
                     {
-                        for (j = 0; j < label_table->count; j++)
+                        Label *label_ptr = get_label_by_name(label_table, params[i] + 1);
+                        if (label_ptr != NULL)
                         {
-                            if (strcmp(params[i], label_table->labels[j].name) == 0)
+                            label_address = label_ptr->address;
+
+                            vpc->storage[address].value = 0;                        /* clear the value */
+                            vpc->storage[address].value |= (label_address & 0x1FFFFF) << 3; /* set bits 3-23 with the value*/
+                            vpc->storage[address].value &= ~(1 << 2);               /* set bit 2 to 0 */
+
+                            /* set the E/R bits based on the label type */
+                            if (strcmp(label_ptr->type, "external") == 0)
                             {
-                                printf("param %s\n", params[i]); 
-                                label_address = label_table->labels[j].address;
-                                value = label_address;
-
-                                vpc->storage[address].value = 0;                        /* Clear the value */
-                                vpc->storage[address].value |= (value & 0x1FFFFF) << 3; /* Set bits 3-23 with the value*/
-                                vpc->storage[address].value &= ~(1 << 2);               /* Set bit 2 to 0 */
-
-                                /* Set the E/R bits based on the label type */
-                                if (strcmp(label_table->labels[j].type, "external") == 0)
-                                {
-                                    vpc->storage[address].value |= (1 << 0);  /* Set bit 0 to 1 */
-                                    vpc->storage[address].value &= ~(1 << 1); /* Set bit 1 to 0 */
-                                }
-                                else
-                                {
-                                    vpc->storage[address].value &= ~(1 << 0); /* Set bit 0 to 0 */
-                                    vpc->storage[address].value |= (1 << 1);  /* Set bit 1 to 1 */
-                                }
+                                vpc->storage[address].value |= (1 << 0);  /* set bit 0 to 1 */
+                                vpc->storage[address].value &= ~(1 << 1); /* set bit 1 to 0 */
+                            }
+                            else
+                            {
+                                vpc->storage[address].value &= ~(1 << 0); /* set bit 0 to 0 */
+                                vpc->storage[address].value |= (1 << 1);  /* set bit 1 to 1 */
                             }
                         }
                     }
-                    if (!validate_register_operand(params[i]))
+                    if (!validate_register_operand(params[i])) /* non register operands give a word */
                     {
-                        address++;
+                        address++; 
                     }
                 }
 

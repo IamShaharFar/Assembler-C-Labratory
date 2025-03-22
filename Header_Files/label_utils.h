@@ -11,38 +11,39 @@
  #include "../Header_Files/errors.h"
  #include "../Header_Files/structs.h"
  
-/*
- * Function: is_valid_label
- * ------------------------
- * Validates whether a given string is a valid label name.
+/** 
+ * @brief  Validates whether a given string is a valid label name.
  *
- * label: The label string to check.
- *
- * returns: ERROR_SUCCESS if the label is valid, otherwise an appropriate error code.
+ * @param label The label string to check.
+ * @return ERROR_SUCCESS if the label is valid, otherwise an appropriate error code.
  */
 ErrorCode is_valid_label(const char *label);
  
- /*
-  * Function: label_exists
-  * ----------------------
-  * Checks whether a label exists in the label table.
-  *
-  * name: The label name to check.
-  * label_table: The table of defined labels.
-  *
-  * returns: TRUE if the label exists, FALSE otherwise.
-  */
+/**
+ * @brief Checks whether a label exists in the label table.
+ *
+ * @param name The label name to check.
+ * @param label_table The table of defined labels.
+ *
+ * @return TRUE if label exists, FALSE otherwise
+ */
  int label_exists(const char *name, LabelTable *label_table);
+
+ /**
+ * @brief find and return a pointer to a label in the label table by name
+ *
+ * @param label_table pointer to the label table
+ * @param name pointer to the label name to search for
+ * @return pointer to the Label if found, NULL otherwise
+ */
+Label *get_label_by_name(LabelTable *label_table, const char *name);
  
- /*
-  * Function: is_valid_extern_label
-  * -------------------------------
-  * Validates an ".extern" directive and extracts the label.
-  *
-  * line: The input line containing the directive.
-  *
-  * returns: ERROR_SUCCESS if the label is valid, otherwise an appropriate error code.
-  */
+/**
+ * @brief Validates an ".extern" directive and extracts the label.
+ *
+ * @param line The input line containing the directive.
+ * @return ERROR_SUCCESS if the label is valid, otherwise an appropriate error code.
+ */
  ErrorCode is_valid_extern_label(const char *line);
 
  /**
@@ -69,13 +70,6 @@ ErrorCode is_valid_entry_label(const char *line, LabelTable *label_table);
  * @return ERROR_SUCCESS if the label is added successfully, otherwise returns an appropriate error code.
  */
 ErrorCode add_label(const char *name, int line_number, const char *line, const char *type, VirtualPC *vpc, LabelTable *label_table, const McroTable *mcro_table);
- 
-/**
- * @brief Prints the names of all macros in the given McroTable.
- *
- * @param mcro_table Pointer to the McroTable containing the macros.
- */
-void print_mcro_names(const McroTable *mcro_table);
 
  #endif /* LABEL_UTILS_H */
  

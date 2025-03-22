@@ -7,6 +7,7 @@
         "string.h": "c",
         "structs.h": "c",
         "preprocessor.h": "c",
-        "preprocessor_utils.h": "c"
+        "preprocessor_utils.h": "c",
+        "vpc_utils.h": "c"
     }
 }
