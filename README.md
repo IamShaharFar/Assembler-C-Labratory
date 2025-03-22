@@ -60,7 +60,7 @@ This will compile all source files and generate an executable `assembler`.
 <!-- Inputs side-by-side -->
 <div align="center">
   <img src="Images/example.as.png" width="48%" alt="example.as"/>
-  <img src="Images/example.am.png" width="48%" alt="example.am"/>
+  <img src="Images/example.am.png" width="48%" height="100%" alt="example.am"/>
 </div>
 
 <br/>
