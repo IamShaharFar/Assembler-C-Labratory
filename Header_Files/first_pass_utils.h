@@ -31,7 +31,7 @@ ErrorCode is_data_storage_instruction(char *line);
  *
  * @return     int The number of data elements or characters in the directive.
  */
-int count_data_or_string_elements(char *ptr);
+int count_data_or_string_elements(char *line);
 
 
 #endif /* FIRST_PASS_UTILS_H */

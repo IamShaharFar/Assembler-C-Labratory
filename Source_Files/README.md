@@ -25,7 +25,7 @@ The `Source_Files/` directory contains the core implementation of the assembler.
     - `init_mcro_table(McroTable *table)`: Initializes the macro table.
     - `add_mcro(McroTable *table, const char *name)`: Adds a new macro definition.
     - `add_line_to_mcro(McroTable *table, const char *line)`: Appends a line to the last macro definition.
-    - `create_am_file(FILE *source_fp, const char *source_filepath, const McroTable *mcro_table)`: Processes the content as it would appear in the .am file expands macros when called, and removes macro declarations
+    - `expand_macros_to_am_file(FILE *source_fp, const char *source_filepath, const McroTable *mcro_table, int *is_valid)`: Processes the content as it would appear in the .am file expands macros when called, and removes macro declarations
 
 ### First and Second Pass Processing
 - **first_pass.c**
@@ -37,20 +37,20 @@ The `Source_Files/` directory contains the core implementation of the assembler.
   - Helper functions for data and instruction processing during the first pass.
   - **Key Functions:**
     - `is_data_storage_instruction(char *line)`: Checks if a directive is a valid `.data` or `.string`.
-    - `count_data_or_string_elements(const char *content)`: Counts the number of elements in a data or string directive.
+    - `count_data_or_string_elements(char *content)`: Counts the number of elements in a data or string directive.
 - **second_pass.c**
   - Resolves label addresses and generates the final machine code.
   - **Key Functions:**
     - `second_pass(FILE *am_file, LabelTable *label_table, VirtualPC *vpc)`: Executes the second pass over the assembly file.
-    - `validate_labels_and_relative_addresses(const char *line, LabelTable *label_table, int line_number, int *is_valid_file)`: Validate operands of a command and check for undefined labels
+    - `validate_labels_and_relative_addresses(const char *line, LabelTable *label_table, int line_number, int *is_valid_file, char *label)`: Validate operands of a command and check for undefined labels
 
 ### Output Generation
 - **output_builder.c**
   - Generates `.ob`, `.ent`, and `.ext` output files.
   - **Key Functions:**
-    - `generate_object_file(const VirtualPC *vpc, const char *filename)`: Creates the `.ob` file containing machine code.
-    - `generate_entry_file(const LabelTable *label_table, const char *filename)`: Generates the `.ent` file for entry labels.
-    - `generate_externals_file(const VirtualPC *vpc, const LabelTable *label_table, const char *filename)`: Generates the `.ext` file for external references.
+    - `generate_object_file(VirtualPC *vpc, const char *filename)`: Creates the `.ob` file containing machine code.
+    - `generate_entry_file(LabelTable *label_table, const char *filename)`: Generates the `.ent` file for entry labels.
+    - `generate_externals_file(VirtualPC *vpc, const LabelTable *label_table, const char *filename)`: Generates the `.ext` file for external references.
 
 ### Label and Command Processing
 - **label_utils.c**
@@ -79,6 +79,7 @@ The `Source_Files/` directory contains the core implementation of the assembler.
     - `advance_past_token(char *str)`: Advances the pointer past the current token in the string.
     - `advance_past_token_or_comma(char *str)`: Advances the pointer past the current token or comma in the string.
     - `validate_register_operand(const char *str)`: Checks if a string is a valid register operand.
+    - `int is_valid_number(const char *s)`: Checks if a string represents a valid integer number.
     - `trim_newline(char *str)`: Trims trailing newline, carriage return, space, and tab characters from a string.
 - **errors.c**
   - Defines error and warnings messages and handle reporting.

@@ -41,6 +41,7 @@
  * @param label_table Pointer to the LabelTable structure containing symbol information.
  * @param line_number The current line number in the source file.
  * @param is_valid_file Pointer to the flag indicating if the file is valid.
+ * @param label Pointer to the label (if declared at the start of the line) else "" 
  * @return void
  */
 void validate_labels_and_relative_addresses(char *content_after_label, LabelTable *label_table, int line_number, int *is_valid_file, char *label);

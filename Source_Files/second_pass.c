@@ -8,9 +8,9 @@
 #include "../Header_Files/structs.h"
 #include "../Header_Files/vpc_utils.h"
 #include "../Header_Files/first_pass_utils.h"
-#include "../Header_Files/globals.h" /* Ensure it contains necessary constants */
-#include "../Header_Files/utils.h"   /* Ensure it has advance_to_next_token */
-#include "../Header_Files/errors.h"  /* Ensure it has ERROR */
+#include "../Header_Files/globals.h" 
+#include "../Header_Files/utils.h"   
+#include "../Header_Files/errors.h"  
 
 /*Implements the second pass of the assembler. */
 int second_pass(FILE *am_file, LabelTable *label_table, VirtualPC *vpc)

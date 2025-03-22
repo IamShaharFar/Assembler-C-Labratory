@@ -8,15 +8,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../Header_Files/preprocessor.h"       /* process_file() */
-#include "../Header_Files/preprocessor_utils.h" /* init_mcro_table() */
-#include "../Header_Files/first_pass.h"         /* first_pass() */
-#include "../Header_Files/second_pass.h"        /* second_pass() */
-#include "../Header_Files/errors.h"             /* print_error_no_line(), print_error() */
-#include "../Header_Files/globals.h"            /* MAX_FILENAME_LENGTH, TRUE, FALSE */
-#include "../Header_Files/structs.h"            /* VirtualPC, LabelTable, McroTable */
-#include "../Header_Files/utils.h"              /* init_virtual_pc(), init_label_table(), init_mcro_table() */
-#include "../Header_Files/output_builder.h"     /* generate_object_file(), generate_entry_file(), generate_externals_file() */
+#include "../Header_Files/preprocessor.h"      
+#include "../Header_Files/preprocessor_utils.h" 
+#include "../Header_Files/first_pass.h"     
+#include "../Header_Files/second_pass.h"       
+#include "../Header_Files/errors.h"           
+#include "../Header_Files/globals.h"          
+#include "../Header_Files/structs.h"        
+#include "../Header_Files/utils.h"             
+#include "../Header_Files/output_builder.h"     
 
 /* prototype */
 void delete_file_if_needed(const char *filename, int success);

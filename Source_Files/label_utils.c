@@ -1,8 +1,8 @@
 /* Source_Files/label_utils.c */
 
-#include <stdio.h>  /* Required for sscanf */
-#include <string.h> /* Required for strcmp, strncpy, strncmp */
-#include <ctype.h>  /* Required for isalpha, isalnum */
+#include <stdio.h>  
+#include <string.h> 
+#include <ctype.h> 
 #include "../Header_Files/label_utils.h"
 #include "../Header_Files/globals.h"
 #include "../Header_Files/utils.h"
@@ -72,7 +72,7 @@ int label_exists(const char *name, LabelTable *label_table)
     return FALSE; /* label not found */
 }
 
-/* find and return a pointer to a label in the label table by name */
+/* Find and return a pointer to a label in the label table by name */
 Label *get_label_by_name(LabelTable *label_table, const char *name)
 {
     int i;

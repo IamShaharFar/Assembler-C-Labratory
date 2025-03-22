@@ -4,11 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "../Header_Files/preprocessor.h"       /* process_file() */
-#include "../Header_Files/globals.h"            /* MAX_FILENAME_LENGTH, TRUE, FALSE */
-#include "../Header_Files/errors.h"             /* print_error_no_line() */
-#include "../Header_Files/utils.h"              /* Utility functions */
-#include "../Header_Files/preprocessor_utils.h" /* Macro handling functions */
+#include "../Header_Files/preprocessor.h"       
+#include "../Header_Files/globals.h"            
+#include "../Header_Files/errors.h"           
+#include "../Header_Files/utils.h"            
+#include "../Header_Files/preprocessor_utils.h" 
 
 /**
  * @brief Checks if a given file exists by attempting to open it.

@@ -3,9 +3,9 @@
  * Description: Utility functions for handling data storage instructions in the first pass of assembly processing.
  */
 
-#include <string.h> /* Required for strncmp */
-#include <stdlib.h> /* Required for strtol */
-#include <ctype.h>  /* Required for isspace */
+#include <string.h> 
+#include <stdlib.h> 
+#include <ctype.h>  
 #include "../Header_Files/first_pass_utils.h"
 #include "../Header_Files/label_utils.h"
 #include "../Header_Files/first_pass.h"
@@ -159,44 +159,44 @@ ErrorCode is_data_storage_instruction(char *line)
 }
 
 /* The number of elements specified in a data (.data) or string (.string) directive. */
-int count_data_or_string_elements(char *ptr)
+int count_data_or_string_elements(char *line)
 {
     int count = 0;
-    ptr = advance_to_next_token(ptr);
+    line = advance_to_next_token(line);
 
     /* check for .data directive */
-    if (strncmp(ptr, ".data", 5) == 0)
+    if (strncmp(line, ".data", 5) == 0)
     {
-        ptr += 5; /* now ptr points to the first element after the ".data" directive keyword */
+        line += 5; /* now line points to the first element after the ".data" directive keyword */
 
-        ptr = advance_to_next_token(ptr);
+        line = advance_to_next_token(line);
 
         /* iterate over the numbers in the .data directive */
-        while (*ptr)
+        while (*line)
         {
-            strtol(ptr, &ptr, 10); /* convert number */
+            strtol(line, &line, 10); /* convert number */
             count++;               /* successfully parsed one numeric element, incrementing the count */
-            ptr = advance_to_next_token(ptr);
-            if (*ptr == ',')
+            line = advance_to_next_token(line);
+            if (*line == ',')
             {
-                ptr++;
-                ptr = advance_to_next_token(ptr);
+                line++;
+                line = advance_to_next_token(line);
             }
         }
     }
     /* check for .string directive */
-    else if (strncmp(ptr, ".string", 7) == 0)
+    else if (strncmp(line, ".string", 7) == 0)
     {
-        ptr += 7; /* now ptr points to the start of the string content after the ".string" directive keyword */
-        ptr = advance_to_next_token(ptr);
+        line += 7; /* now line points to the start of the string content after the ".string" directive keyword */
+        line = advance_to_next_token(line);
 
-        if (*ptr == '"')
+        if (*line == '"')
         {
-            ptr++;
-            while (*ptr && *ptr != '"')
+            line++;
+            while (*line && *line != '"')
             {
                 count++; /* counting each character within the string quotes */
-                ptr++;
+                line++;
             }
             count++; /* null termination is also counting*/
         }

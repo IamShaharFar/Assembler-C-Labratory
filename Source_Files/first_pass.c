@@ -1,12 +1,8 @@
 /* Source_files/first_pass.c */
-
-/* Standard library headers */
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
-
-/* Project-specific headers */
 #include "../Header_Files/first_pass.h"
 #include "../Header_Files/errors.h"
 #include "../Header_Files/globals.h"

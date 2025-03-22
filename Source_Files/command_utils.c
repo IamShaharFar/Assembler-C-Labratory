@@ -1,9 +1,9 @@
 /* Source_files_command_utils.c */
 
- #include <stdio.h>   /* Required for sscanf */
- #include <stdlib.h>  /* Required for strtol */
- #include <string.h>  /* Required for strcmp, strncpy, strspn */
- #include <ctype.h>   /* Required for isspace */
+ #include <stdio.h>  
+ #include <stdlib.h>  
+ #include <string.h>  
+ #include <ctype.h>   
  #include "../Header_Files/command_utils.h"
  #include "../Header_Files/label_utils.h"
  #include "../Header_Files/globals.h"
