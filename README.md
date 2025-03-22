@@ -57,20 +57,27 @@ This will compile all source files and generate an executable `assembler`.
 
 ### Sample Input/Output Flow
 
+<!-- Inputs side-by-side -->
 <div align="center">
-
-  <img src="Images/example.as.png" width="48%" alt=".as file"/>
-  <img src="Images/example.am.png" width="48%" alt=".am file"/>
-
+  <img src="Images/example.as.png" width="48%" alt="example.as"/>
+  <img src="Images/example.am.png" width="48%" alt="example.am"/>
 </div>
 
 <br/>
-<div align="center">
-   <img src="Images/example.ob.png" width="600" alt=".ob file"/>
-   <img src="Images/example.ent.png" width="600" alt=".ent file"/>
-   <img src="Images/example.ext.png" width="600" alt=".ext file"/>
-</div>
 
+<!-- Output layout: .ob on left, .ent/.ext stacked on right -->
+<div align="center" style="display: flex; justify-content: center; gap: 2%;">
+
+  <!-- .ob image -->
+  <img src="Images/example.ob.png" width="48%" alt="example.ob"/>
+
+  <!-- .ent above .ext -->
+  <div style="display: flex; flex-direction: column; justify-content: space-between;">
+    <img src="Images/example.ent.png" width="100%" alt="example.ent"/>
+    <img src="Images/example.ext.png" width="100%" alt="example.ext"/>
+  </div>
+
+</div>
 
 ### Running the Assembler
 After compiling, the assembler can be executed with:
