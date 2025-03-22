@@ -57,27 +57,20 @@ This will compile all source files and generate an executable `assembler`.
 
 ### Sample Input/Output Flow
 
-<!-- Inputs side-by-side -->
-<div align="center">
-  <img src="Images/example.as.png" width="48%" alt="example.as"/>
-  <img src="Images/example.am.png" width="48%" height="100%" alt="example.am"/>
-</div>
+<!-- Input files side-by-side -->
+<p align="center">
+  <img src="Images/example.as.png" width="45%" alt="example.as"/>
+  <img src="Images/example.am.png" width="45%" alt="example.am"/>
+</p>
 
-<br/>
-
-<!-- Output layout: .ob on left, .ent/.ext stacked on right -->
-<div align="center" style="display: flex; justify-content: center; gap: 2%;">
-
-  <!-- .ob image -->
-  <img src="Images/example.ob.png" width="48%" alt="example.ob"/>
-
-  <!-- .ent above .ext -->
-  <div style="display: flex; flex-direction: column; justify-content: space-between;">
-    <img src="Images/example.ent.png" width="100%" alt="example.ent"/>
+<!-- Output: .ob on left, .ent/.ext stacked on right -->
+<p align="center">
+  <img src="Images/example.ob.png" width="45%" alt="example.ob" style="vertical-align: top;"/>
+  <span style="display: inline-block; width: 45%; vertical-align: top;">
+    <img src="Images/example.ent.png" width="100%" alt="example.ent"/><br/>
     <img src="Images/example.ext.png" width="100%" alt="example.ext"/>
-  </div>
-
-</div>
+  </span>
+</p>
 
 ### Running the Assembler
 After compiling, the assembler can be executed with:
