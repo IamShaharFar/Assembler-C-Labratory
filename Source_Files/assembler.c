@@ -108,9 +108,6 @@ int main(int argc, char *argv[])
             generate_externals_file(vpc, &label_table, argv[i]);
         }
 
-        /* remove intermediate files if assembly was unsuccessful */
-        delete_file_if_needed(am_filename, success);
-
     }
 
     /* free allocated memory before program exits */
@@ -118,16 +115,3 @@ int main(int argc, char *argv[])
     return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-/** 
- * @brief Deletes the .am file if the assembly process failed.
- *
- * @param filename The name of the file to delete.
- * @param success Indicates whether the assembly process was successful.
- */
-void delete_file_if_needed(const char *filename, int success)
-{
-    if (!success && remove(filename) != 0) 
-    {
-        print_error_no_line(ERROR_FILE_DELETE);
-    }
-}

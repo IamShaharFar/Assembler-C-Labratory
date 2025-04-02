@@ -8,9 +8,9 @@
 #include "../Header_Files/structs.h"
 #include "../Header_Files/vpc_utils.h"
 #include "../Header_Files/first_pass_utils.h"
-#include "../Header_Files/globals.h" 
-#include "../Header_Files/utils.h"   
-#include "../Header_Files/errors.h"  
+#include "../Header_Files/globals.h"
+#include "../Header_Files/utils.h"
+#include "../Header_Files/errors.h"
 
 /*Implements the second pass of the assembler. */
 int second_pass(FILE *am_file, LabelTable *label_table, VirtualPC *vpc)
@@ -69,6 +69,7 @@ int second_pass(FILE *am_file, LabelTable *label_table, VirtualPC *vpc)
         }
         else
         {
+            label[0] = '\0';                       /* no label found */
             content = advance_to_next_token(line); /* No colon found, content is the entire line */
         }
 
@@ -78,7 +79,7 @@ int second_pass(FILE *am_file, LabelTable *label_table, VirtualPC *vpc)
         if (strncmp(content, ".extern", 7) == 0 ||
             strncmp(content, ".string", 7) == 0 ||
             strncmp(content, ".data", 5) == 0)
-        { 
+        {
             continue; /* Skip these lines */
         }
         else if (strncmp(content, ".entry", 6) == 0)
@@ -103,7 +104,6 @@ int second_pass(FILE *am_file, LabelTable *label_table, VirtualPC *vpc)
             continue;
         }
     }
-
 
     return is_valid_file;
 }
@@ -140,7 +140,7 @@ void validate_labels_and_relative_addresses(char *content_after_label, LabelTabl
                     print_error_with_code(ERROR_UNDEFINED_LABEL, line_number, content_after_label, param_ptr);
                     *is_valid_file = FALSE;
                 }
-                else 
+                else
                 {
                     if (strcmp(label_ptr->name, label) == 0)
                     {

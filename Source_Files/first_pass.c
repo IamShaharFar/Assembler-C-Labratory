@@ -60,7 +60,7 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
         line_number++;
         strncpy(original_line, line, MAX_LINE_LENGTH - 1);
         original_line[MAX_LINE_LENGTH - 1] = '\0'; /* eesure null-termination */
-        ptr_line = advance_to_next_token(line);         /* skip leading spaces */
+        ptr_line = advance_to_next_token(line);    /* skip leading spaces */
 
         colon_pos = strchr(ptr_line, ':');
         quote_pos = strchr(ptr_line, '"');
@@ -132,6 +132,13 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
                     print_error(err, line_number);
                     is_valid_file = FALSE;
                 }
+                else
+                {
+                    if (is_non_existing_register(label))
+                    {
+                        print_warning(WARNING_LABEL_RESEMBLES_INVALID_REGISTER, line_number);
+                    }
+                }
             }
             continue;
         }
@@ -150,11 +157,15 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
                 /* invalid label */
                 if (error != ERROR_SUCCESS)
                 {
-                    print_error(err, line_number);
-                    is_valid_file = FALSE; /* keep looking for errors at the content */
+                    print_error(error, line_number);
+                    is_valid_file = FALSE; /* keep looking for errors at the line*/
                 }
                 else
                 {
+                    if (is_non_existing_register(label))
+                    {
+                        print_warning(WARNING_LABEL_RESEMBLES_INVALID_REGISTER, line_number);
+                    }
                     error = add_label(label, line_number, content_after_label, "data", vpc, label_table, mcro_table);
                     if (error != ERROR_SUCCESS)
                     {
@@ -207,11 +218,15 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
                 /* invalid label */
                 if (error != ERROR_SUCCESS)
                 {
-                    print_error(err, line_number);
-                    is_valid_file = FALSE; /* keep looking for errors at the content */
+                    print_error(error, line_number);
+                    is_valid_file = FALSE; /* keep looking for errors at the line*/
                 }
                 else
                 {
+                    if (is_non_existing_register(label))
+                    {
+                        print_warning(WARNING_LABEL_RESEMBLES_INVALID_REGISTER, line_number);
+                    }
                     error = add_label(label, line_number, content_after_label, "code", vpc, label_table, mcro_table);
                     if (error != ERROR_SUCCESS)
                     {
@@ -266,6 +281,6 @@ int first_pass(FILE *fp, VirtualPC *vpc, LabelTable *label_table, const McroTabl
         print_error_no_line(ERROR_VPC_STORAGE_FULL);
         is_valid_file = FALSE;
     }
-    
+
     return is_valid_file;
 }

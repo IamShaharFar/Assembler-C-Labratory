@@ -128,7 +128,6 @@ void generate_externals_file(VirtualPC *vpc, LabelTable *label_table, const char
     }
 
     /* scan through VirtualPC storage */
-
     for (i = start_addr; i < end_addr; i++)
     {
         const char *encoded_str = vpc->storage[i].encoded;
@@ -140,7 +139,6 @@ void generate_externals_file(VirtualPC *vpc, LabelTable *label_table, const char
                 /* write to file: label name and address in 7-digit format */
                 fprintf(ext_file, "%s %07u\n", encoded_str, i);
                 extern_count++;
-                break;
         }
     }
 

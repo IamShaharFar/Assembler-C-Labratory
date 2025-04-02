@@ -84,8 +84,6 @@ typedef enum
     ERROR_INVALID_RELATIVE_OR_DIRECT_OPERAND,
     ERROR_INVALID_IMMEDIATE_OPERAND,
     ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_OPERAND,
-    ERROR_INVALID_REGISTER_FIRST_OPERAND,
-    ERROR_INVALID_REGISTER_SECOND_OPERAND,
     ERROR_INVALID_DATA_REAL_NUMBER,
     ERROR_NOT_EXTERN_LINE,
     ERROR_NOT_ENTRY_LINE,
@@ -110,7 +108,8 @@ typedef enum
     /* General warnings */
     WARNING_LABEL_BEFORE_EXTERN, /* Warns about ignored label before .extern */
     WARNING_LABEL_BEFORE_ENTRY,
-    WARNING_REDUNDANT_ENTRY /* Warns if .entry is declared multiple times */
+    WARNING_REDUNDANT_ENTRY, /* Warns if .entry is declared multiple times */
+    WARNING_LABEL_RESEMBLES_INVALID_REGISTER
 } WarningCode;
 
 typedef struct

@@ -87,8 +87,6 @@ const Error errors[] = {
     {ERROR_INVALID_RELATIVE_OR_DIRECT_OPERAND, "ERROR_INVALID_RELATIVE_OR_DIRECT_OPERAND", "Invalid operand. Expected Relative Addressing or Direct Addressing."},
     {ERROR_INVALID_IMMEDIATE_OPERAND, "ERROR_INVALID_IMMEDIATE_OPERAND", "Invalid numeric value. Expected Immediate Address."},
     {ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_OPERAND, "ERROR_INVALID_IMMEDIATE_DIRECT_OR_REGISTER_OPERAND", "Invalid operand. Expected Immediate Address, Direct Addressing, or Register Address Direct."},
-    {ERROR_INVALID_REGISTER_FIRST_OPERAND, "ERROR_INVALID_REGISTER_FIRST_OPERAND", "Invalid register in the first operand. Expected r0-r7."},
-    {ERROR_INVALID_REGISTER_SECOND_OPERAND, "ERROR_INVALID_REGISTER_SECOND_OPERAND", "Invalid register in the second operand. Expected r0-r7."},
     {ERROR_INVALID_DATA_REAL_NUMBER, "ERROR_INVALID_DATA_REAL_NUMBER", "Invalid numeric value. Expected an integer."},
     {ERROR_NOT_EXTERN_LINE, "ERROR_NOT_EXTERN_LINE", "Line is not a valid .extern directive."},
     {ERROR_NOT_ENTRY_LINE, "ERROR_NOT_ENTRY_LINE", "Line is not a valid .entry directive."},
@@ -113,6 +111,7 @@ const Warning warnings[] = {
     {WARNING_LABEL_BEFORE_EXTERN, "WARNING_LABEL_BEFORE_EXTERN", "Label before .extern directive is ignored."},
     {WARNING_LABEL_BEFORE_ENTRY, "WARNING_LABEL_BEFORE_ENTRY", "Label before .entry directive is ignored."},
     {WARNING_REDUNDANT_ENTRY, "WARNING_REDUNDANT_ENTRY", "Label declared multiple times as .entry."},
+    {WARNING_LABEL_RESEMBLES_INVALID_REGISTER, "WARNING_LABEL_RESEMBLES_INVALID_REGISTER", "Label name resembles an invalid register (e.g., r9) — valid registers are r0 to r7 and cannot be used as labels."}
 };
 
 /**

@@ -1,1 +1,5 @@
-START 0000100
+routineOneCall 0000126
+loopStart 0000143
+routineAlpha 0000161
+routineBeta 0000183
+endPoint 0000274
