@@ -35,18 +35,14 @@ Below is a breakdown of the header files and their purposes:
 ### General Utilities
 - **utils.h**: Provides utility functions for string manipulation, memory management, and general helper operations.
 
-<<<<<<< HEAD
 ### 9. **preprocessor_utils.h**
 - Utility functions for macro processing.
 - **Key Functions:**
   - `void init_mcro_table(McroTable *table);`
   - `ErrorCode is_valid_mcro_name(const char *name);`
   - `int expand_macros_to_am_file (FILE *source_fp, const char *source_filepath, const McroTable *mcro_table);`
-=======
+
 ## Usage
 These header files should be included in the corresponding `Source_Files/` implementations to ensure proper function declaration and structure usage. They should not contain function definitions but only prototypes, macros, and data structure declarations.
->>>>>>> ac6ce29c78c35619f6bb0735ba26d15ceaa7f504
 
-## Contact
-For further inquiries, reach out to the project maintainers or consult the main `README.md` for general project details.
 
