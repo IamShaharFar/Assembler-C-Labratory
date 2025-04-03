@@ -1,0 +1,6 @@
+START:  mov r3 LENGTH     
+        sub ,r1           
+        add #abc, r2      
+        prn               
+        stop extra        
+        jmp &UNDEF_LABEL  

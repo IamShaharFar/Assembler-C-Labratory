@@ -1,0 +1,7 @@
+.entry MISSING_LABEL      
+LABEL:  lea #5, r1        
+        jsr &EXT_LABEL    
+.extern EXT_LABEL
+        add r3 r2         
+        mov r1, ,r3       
+        stop unknown      
